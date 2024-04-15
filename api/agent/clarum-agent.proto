@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+option go_package = "github.com/go-clarum/agent/api/agent";
+
+service AgentService {
+
+  rpc GetStatus(StatusRequest) returns (StatusResponse) {}
+}
+
+message StatusRequest {}
+message StatusResponse {
+  Status status = 1;
+}
+
+enum Status {
+  UNKNOWN = 0;
+  READY = 1;
+  BOOTSTRAPPING = 2;
+  ERROR = 3;
+}

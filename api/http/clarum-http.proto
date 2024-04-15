@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+option go_package = "github.com/go-clarum/agent/api/http";
+
+service HttpService {
+
+  rpc CreateClientEndpoint(ClientEndpoint) returns (CreateResponse) {}
+}
+
+message ClientEndpoint {
+  string name = 1;
+}
+message CreateResponse {
+  bool success = 1;
+}
