@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+option go_package = "github.com/go-clarum/agent/api/cmd";
+
+service CmdService {
+  rpc CreateCommandEndpoint(CommandEndpoint) returns (CommandCreateResponse) {}
+}
+
+message CommandEndpoint {
+  string name = 1;
+}
+message CommandCreateResponse {
+  bool success = 1;
+}
