@@ -16,7 +16,6 @@ func main() {
 	logging.Infof("Starting clarum agent v%s", config.Version())
 	control.ShutdownHook.Add(1)
 
-	config.LoadConfig()
 	initAndRunGrpcServer()
 
 	control.ShutdownHook.Wait()

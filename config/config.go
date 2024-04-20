@@ -2,9 +2,8 @@ package config
 
 import (
 	"github.com/go-clarum/agent/files"
-	"github.com/go-clarum/agent/logging"
 	"gopkg.in/yaml.v3"
-	"log/slog"
+	"log"
 	"os"
 	"path"
 	"time"
@@ -25,12 +24,14 @@ type config struct {
 	}
 }
 
-func LoadConfig() {
+func init() {
+	initLogger := log.New(os.Stdout, "", log.LstdFlags|log.Lmicroseconds)
+
 	configFilePath := path.Join(*baseDir, *configFile)
 	conf, err := files.ReadYamlFileToStruct[config](configFilePath)
 	if err != nil {
 		dir, _ := os.Getwd()
-		logging.Infof("No config file found in [%s] - default values will be used instead", dir)
+		initLogger.Printf("No config file found in [%s] - default values will be used instead", dir)
 		conf = &config{}
 	}
 
@@ -39,7 +40,7 @@ func LoadConfig() {
 	c = conf
 
 	configYaml, _ := yaml.Marshal(conf)
-	logging.Infof("Using the following config:\n[\n%s]", configYaml)
+	initLogger.Printf("Using the following config:\n[\n%s]", configYaml)
 }
 
 func Version() string {
@@ -50,8 +51,8 @@ func BaseDir() string {
 	return *baseDir
 }
 
-func LoggingLevel() slog.Level {
-	return logging.ParseLevel(c.Logging.Level)
+func LoggingLevel() string {
+	return c.Logging.Level
 }
 
 func ActionTimeout() time.Duration {

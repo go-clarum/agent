@@ -2,7 +2,7 @@ package files
 
 import (
 	"errors"
-	"github.com/go-clarum/agent/logging"
+	"fmt"
 	"github.com/go-clarum/agent/validators/strings"
 	"gopkg.in/yaml.v3"
 	"os"
@@ -10,21 +10,18 @@ import (
 
 func ReadYamlFileToStruct[S any](filePath string) (*S, error) {
 	if strings.IsBlank(filePath) {
-		logging.Error("Unable to read file. File path is empty")
-		return nil, errors.New("file path is empty")
+		return nil, errors.New("unable to read file - file path is empty")
 	}
 
 	buf, err := os.ReadFile(filePath)
 	if err != nil {
-		logging.Errorf("Failed to %s", err.Error())
-		return nil, err
+		return nil, errors.New(fmt.Sprintf("unable to read file - %s", err))
 	}
 
 	out := new(S)
 
 	if err := yaml.Unmarshal(buf, out); err != nil {
-		logging.Errorf("Failed to unmarshal yaml file %s: %s", filePath, err.Error())
-		return nil, err
+		return nil, errors.New(fmt.Sprintf("failed to unmarshal yaml file %s: %s", filePath, err))
 	}
 
 	return out, err
