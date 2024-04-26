@@ -9,27 +9,29 @@ import (
 	"google.golang.org/grpc"
 )
 
-type cmdService struct {
+var commandService = service.NewCommandService()
+
+type grpcService struct {
 	UnimplementedCmdServiceServer
 }
 
 func RegisterCmdService(server *grpc.Server) {
 	logging.Infof("Registering CommandService")
-	RegisterCmdServiceServer(server, &cmdService{})
+	RegisterCmdServiceServer(server, &grpcService{})
 }
 
-func (s *cmdService) InitEndpoint(ctx context.Context, req *InitCmdEndpoint) (*InitCmdEndpointResponse, error) {
-	err := service.InitializeEndpoint(req.Name, req.CmdComponents, req.WarmupSeconds)
+func (s *grpcService) InitEndpoint(ctx context.Context, req *InitEndpointRequest) (*InitEndpointResponse, error) {
+	err := commandService.InitializeEndpoint(req.Name, req.CmdComponents, req.WarmupMillis)
 
-	return &InitCmdEndpointResponse{
+	return &InitEndpointResponse{
 		Error: fmt.Sprintf("%s", err),
 	}, nil
 }
 
-func (s *cmdService) ShutdownEndpoint(ctx context.Context, req *ShutdownCmdEndpoint) (*ShutdownCmdEndpointResponse, error) {
-	err := service.ShutdownEndpoint(req.Name)
+func (s *grpcService) ShutdownEndpoint(ctx context.Context, req *ShutdownEndpointRequest) (*ShutdownEndpointResponse, error) {
+	err := commandService.ShutdownEndpoint(req.Name)
 
-	return &ShutdownCmdEndpointResponse{
+	return &ShutdownEndpointResponse{
 		Error: fmt.Sprintf("%s", err),
 	}, nil
 }

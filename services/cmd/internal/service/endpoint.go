@@ -21,7 +21,7 @@ type endpoint struct {
 	logger        *logging.Logger
 }
 
-func newCommandEndpoint(name string, cmdComponents []string, warmupSeconds int32) (*endpoint, error) {
+func newEndpoint(name string, cmdComponents []string, warmupMillis int32) (*endpoint, error) {
 	if clarumstrings.IsBlank(name) {
 		return nil, errors.New("cannot create command endpoint - name is empty")
 	}
@@ -30,12 +30,12 @@ func newCommandEndpoint(name string, cmdComponents []string, warmupSeconds int32
 		return nil, errors.New(fmt.Sprintf("cannot create command endpoint [%s] - cmd is empty", name))
 	}
 
-	warmupDuration := time.Duration(warmupSeconds)
+	warmupDuration := time.Duration(warmupMillis)
 
 	return &endpoint{
 		name:          name,
 		cmdComponents: cmdComponents,
-		warmup:        durations.GetDurationWithDefault(warmupDuration, 1*time.Second),
+		warmup:        durations.GetDurationWithDefault(warmupDuration, 1*time.Millisecond),
 		logger:        logging.NewLogger(loggerName(name)),
 	}, nil
 }

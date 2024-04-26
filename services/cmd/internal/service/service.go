@@ -6,52 +6,61 @@ import (
 	"github.com/go-clarum/agent/logging"
 )
 
-var endpoints map[string]*endpoint
-var logger *logging.Logger
-
-func init() {
-	endpoints = make(map[string]*endpoint)
-	logger = logging.NewLogger("CommandService")
+type CommandEndpoint interface {
+	InitializeEndpoint(name string, cmdComponents []string, warmupMillis int32) error
+	ShutdownEndpoint(name string) error
 }
 
-func InitializeEndpoint(name string, cmdComponents []string, warmupSeconds int32) error {
-	newEndpoint, err := newCommandEndpoint(name, cmdComponents, warmupSeconds)
+type service struct {
+	endpoints map[string]*endpoint
+	logger    *logging.Logger
+}
+
+func NewCommandService() *service {
+	return &service{
+		endpoints: make(map[string]*endpoint),
+		logger:    logging.NewLogger("CommandService"),
+	}
+}
+
+func (s *service) InitializeEndpoint(name string, cmdComponents []string, warmupMillis int32) error {
+	newEndpoint, err := newEndpoint(name, cmdComponents, warmupMillis)
 
 	if err != nil {
-		logger.Errorf("failed to initialize endpoint - %s", err)
+		s.logger.Errorf("failed to initialize endpoint - %s", err)
 		return err
 	}
 
-	if oldEndpoint, exists := endpoints[newEndpoint.name]; exists {
-		logger.Infof("endpoint [%s] already exists - replacing", oldEndpoint.name)
+	if oldEndpoint, exists := s.endpoints[newEndpoint.name]; exists {
+		s.logger.Infof("endpoint [%s] already exists - replacing", oldEndpoint.name)
 		go func() {
 			_ = oldEndpoint.shutdown()
 		}()
 	}
 
 	if err := newEndpoint.start(); err != nil {
-		logger.Errorf("failed to initialize endpoint - %s", err)
+		s.logger.Errorf("failed to initialize endpoint - %s", err)
 		return err
 	}
 
-	endpoints[newEndpoint.name] = newEndpoint
-	logging.Debugf("registered endpoint [%s]", newEndpoint.name)
+	s.endpoints[newEndpoint.name] = newEndpoint
+	logging.Infof("registered endpoint [%s]", newEndpoint.name)
 
 	return nil
 }
 
-func ShutdownEndpoint(name string) error {
-	if endpoint, exists := endpoints[name]; exists {
-		logger.Infof("shutting down endpoint [%s]", endpoint.name)
+func (s *service) ShutdownEndpoint(name string) error {
+	if endpoint, exists := s.endpoints[name]; exists {
+		s.logger.Infof("shutting down endpoint [%s]", endpoint.name)
 		err := endpoint.shutdown()
 		if err != nil {
-			logger.Errorf("error during endpoint shutdown - %s", err)
+			s.logger.Errorf("error during endpoint shutdown - %s", err)
 			return err
 		}
 		return nil
 	}
 
 	err := errors.New(fmt.Sprintf("endpoint [%s] does not exist", name))
-	logger.Errorf("unable to shutdown endpoint - %s", err)
+	s.logger.Errorf("unable to shutdown endpoint - %s", err)
 	return err
 }
