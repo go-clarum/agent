@@ -3,6 +3,7 @@ module github.com/go-clarum/agent
 go 1.22
 
 require (
+	github.com/go-clarum/clarum-json v1.0.0
 	google.golang.org/grpc v1.62.1
 	google.golang.org/protobuf v1.33.0
 	gopkg.in/yaml.v3 v3.0.1

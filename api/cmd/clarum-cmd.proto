@@ -3,22 +3,22 @@ syntax = "proto3";
 option go_package = "github.com/go-clarum/agent/api/cmd";
 
 service CmdService {
-  rpc InitEndpoint(InitCmdEndpoint) returns (InitCmdEndpointResponse) {}
-  rpc ShutdownEndpoint(ShutdownCmdEndpoint) returns (ShutdownCmdEndpointResponse) {}
+  rpc InitEndpoint(InitEndpointRequest) returns (InitEndpointResponse) {}
+  rpc ShutdownEndpoint(ShutdownEndpointRequest) returns (ShutdownEndpointResponse) {}
 }
 
-message InitCmdEndpoint {
+message InitEndpointRequest {
   string name = 1;
-  int32 warmup_seconds = 2;
+  int32 warmup_millis = 2;
   repeated string cmd_components = 3;
 }
-message InitCmdEndpointResponse {
+message InitEndpointResponse {
   string error = 1;
 }
 
-message ShutdownCmdEndpoint {
+message ShutdownEndpointRequest {
   string name = 1;
 }
-message ShutdownCmdEndpointResponse {
+message ShutdownEndpointResponse {
   string error = 1;
 }

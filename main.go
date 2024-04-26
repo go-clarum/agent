@@ -38,6 +38,6 @@ func initAndRunGrpcServer() {
 
 	logging.Infof("Starting GRPC server on %s", address)
 	if err := grpcServer.Serve(lis); err != nil {
-		return
+		logging.Errorf("GRPC server startup error: %s", err)
 	}
 }

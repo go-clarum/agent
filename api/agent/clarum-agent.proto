@@ -3,18 +3,18 @@ syntax = "proto3";
 option go_package = "github.com/go-clarum/agent/api/agent";
 
 service AgentService {
-  rpc GetStatus(StatusRequest) returns (StatusResponse) {}
+  rpc Status(StatusRequest) returns (StatusResponse) {}
   rpc Shutdown(ShutdownRequest) returns (ShutdownResponse) {}
 }
 
 message StatusRequest {}
 message StatusResponse {
-  bool ok = 1;
+  string error = 1;
 }
 
 message ShutdownRequest {}
 message ShutdownResponse {
-  string message = 1;
+  string error = 1;
 }
 
 

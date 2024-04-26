@@ -1,3 +1,9 @@
+github.com/go-clarum/clarum-core v0.1.0 h1:GkXUn5U2JaUlIi/ojkgexPXcXwhfzwefs5klmn4P1q0=
+github.com/go-clarum/clarum-core v0.1.0/go.mod h1:L1guRHi+CrM6CE2PNr2raAvfVPzJSR6VaEyC1a3bP1o=
+github.com/go-clarum/clarum-http v0.1.0 h1:caGzeCr8AsVu0NGsRX7huENYWB2tA9zRq3hbx2D3Ysg=
+github.com/go-clarum/clarum-http v0.1.0/go.mod h1:cRj1OnF3fQkU4Dmg120BVzmbyNPOB1LuN5Po/5zDNw4=
+github.com/go-clarum/clarum-json v1.0.0 h1:HFnhhzDjT4et/X/ricK7pXDPhtsZSEpORuSPKUiFrCY=
+github.com/go-clarum/clarum-json v1.0.0/go.mod h1:SZi2GKhcHUUCN0g2njGi9vrgr1+8gLwEjhMAiNZao1s=
 github.com/golang/protobuf v1.5.0/go.mod h1:FsONVRAS9T7sI+LIUmWTfcYkHO4aIWwzhcaSAoJOfIk=
 github.com/golang/protobuf v1.5.3 h1:KhyjKVUg7Usr/dYsdSqoFveMYd5ko72D+zANwlG1mmg=
 github.com/golang/protobuf v1.5.3/go.mod h1:XVQd3VNwM+JqD3oG2Ue2ip4fOMUkwXdXDdiuN0vRsmY=
