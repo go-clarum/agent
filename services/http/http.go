@@ -6,10 +6,12 @@ import (
 	. "github.com/go-clarum/agent/api/http"
 	"github.com/go-clarum/agent/logging"
 	"github.com/go-clarum/agent/services/http/internal/client"
+	"github.com/go-clarum/agent/services/http/internal/server"
 	"google.golang.org/grpc"
 )
 
 var httpClientService = client.NewHttpClientService()
+var httpServerService = server.NewHttpServerService()
 
 type grpcService struct {
 	UnimplementedHttpServiceServer
@@ -21,7 +23,8 @@ func RegisterHttpService(server *grpc.Server) {
 }
 
 func (s *grpcService) InitClientEndpoint(ctx context.Context, ic *InitializeClientRequest) (*InitializeClientResponse, error) {
-	err := httpClientService.InitializeEndpoint(ic)
+	ir := client.NewInitializeRequestFrom(ic)
+	err := httpClientService.InitializeEndpoint(ir)
 
 	return &InitializeClientResponse{
 		Error: fmt.Sprintf("%s", err),
@@ -29,11 +32,17 @@ func (s *grpcService) InitClientEndpoint(ctx context.Context, ic *InitializeClie
 }
 
 func (s *grpcService) InitServerEndpoint(ctx context.Context, is *InitializeServerRequest) (*InitializeServerResponse, error) {
-	return &InitializeServerResponse{}, nil
+	req := server.NewInitializeRequestFrom(is)
+	err := httpServerService.InitializeEndpoint(req)
+
+	return &InitializeServerResponse{
+		Error: fmt.Sprintf("%s", err),
+	}, nil
 }
 
 func (s *grpcService) ClientSendAction(ctx context.Context, sendAction *ClientSendActionRequest) (*ClientSendActionResponse, error) {
-	err := httpClientService.SendAction(sendAction)
+	sa := client.NewSendActionFrom(sendAction)
+	err := httpClientService.SendAction(sa)
 
 	return &ClientSendActionResponse{
 		Error: fmt.Sprintf("%s", err),
@@ -41,7 +50,8 @@ func (s *grpcService) ClientSendAction(ctx context.Context, sendAction *ClientSe
 }
 
 func (s *grpcService) ClientReceiveAction(ctx context.Context, receiveAction *ClientReceiveActionRequest) (*ClientReceiveActionResponse, error) {
-	_, err := httpClientService.ReceiveAction(receiveAction)
+	ra := client.NewReceiveActionFrom(receiveAction)
+	_, err := httpClientService.ReceiveAction(ra)
 
 	return &ClientReceiveActionResponse{
 		Error: fmt.Sprintf("%s", err),
@@ -49,9 +59,19 @@ func (s *grpcService) ClientReceiveAction(ctx context.Context, receiveAction *Cl
 }
 
 func (s *grpcService) ServerSendAction(ctx context.Context, sendAction *ServerSendActionRequest) (*ServerSendActionResponse, error) {
-	return &ServerSendActionResponse{}, nil
+	sa := server.NewSendActionFrom(sendAction)
+	err := httpServerService.SendAction(sa)
+
+	return &ServerSendActionResponse{
+		Error: fmt.Sprintf("%s", err),
+	}, nil
 }
 
 func (s *grpcService) ServerReceiveAction(ctx context.Context, receiveAction *ServerReceiveActionRequest) (*ServerReceiveActionResponse, error) {
-	return &ServerReceiveActionResponse{}, nil
+	ra := server.NewReceiveActionFrom(receiveAction)
+	_, err := httpServerService.ReceiveAction(ra)
+
+	return &ServerReceiveActionResponse{
+		Error: fmt.Sprintf("%s", err),
+	}, nil
 }

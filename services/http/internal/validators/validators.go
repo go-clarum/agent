@@ -3,9 +3,9 @@ package validators
 import (
 	"errors"
 	"fmt"
-	api "github.com/go-clarum/agent/api/http"
 	"github.com/go-clarum/agent/arrays"
 	"github.com/go-clarum/agent/logging"
+	"github.com/go-clarum/agent/services/http/internal"
 	clarumstrings "github.com/go-clarum/agent/validators/strings"
 	"github.com/go-clarum/clarum-json/comparator"
 	"github.com/go-clarum/clarum-json/recorder"
@@ -73,7 +73,7 @@ func validateHeaders(expectedHeaders map[string]string, actualHeaders http.Heade
 	return nil
 }
 
-func ValidateHttpQueryParams(expectedQueryParams *map[string][]string, actualUrl *url.URL, logger *logging.Logger) error {
+func ValidateHttpQueryParams(expectedQueryParams map[string][]string, actualUrl *url.URL, logger *logging.Logger) error {
 	if err := validateQueryParams(expectedQueryParams, actualUrl.Query()); err != nil {
 		return handleError(logger, "%s", err)
 	} else {
@@ -87,8 +87,8 @@ func ValidateHttpQueryParams(expectedQueryParams *map[string][]string, actualUrl
 //
 //	-> validate that the param exists
 //	-> that the values match
-func validateQueryParams(expectedQueryParams *map[string][]string, params url.Values) error {
-	for param, expectedValues := range *expectedQueryParams {
+func validateQueryParams(expectedQueryParams map[string][]string, params url.Values) error {
+	for param, expectedValues := range expectedQueryParams {
 		if receivedValues, exists := params[param]; exists {
 			for _, expectedValue := range expectedValues {
 				if !arrays.Contains(receivedValues, expectedValue) {
@@ -116,7 +116,7 @@ func ValidateHttpStatusCode(expectedStatusCode int, actualStatusCode int, logger
 }
 
 func ValidateHttpPayload(expectedPayload *string, actualPayload io.ReadCloser,
-	payloadType api.PayloadType, logger *logging.Logger) error {
+	payloadType internal.PayloadType, logger *logging.Logger) error {
 	defer closeBody(logger, actualPayload)
 
 	if clarumstrings.IsBlank(*expectedPayload) {
@@ -144,19 +144,18 @@ func closeBody(logger *logging.Logger, body io.ReadCloser) {
 	}
 }
 
-func validatePayload(expected *string, actual []byte, payloadType api.PayloadType, logger *logging.Logger) error {
-
+func validatePayload(expected *string, actual []byte, payloadType internal.PayloadType, logger *logging.Logger) error {
 	if len(actual) == 0 {
 		return errors.New(fmt.Sprintf("validation error - payload missing - expected [%s] but received no payload",
 			expected))
-	} else if payloadType == api.PayloadType_Plaintext {
+	} else if payloadType == internal.Plaintext {
 		receivedPayload := string(actual)
 
 		if *expected != receivedPayload {
 			return errors.New(fmt.Sprintf("validation error - payload mismatch - expected [%s] but received [%s]",
 				expected, receivedPayload))
 		}
-	} else if payloadType == api.PayloadType_Json {
+	} else if payloadType == internal.Json {
 		jsonComparator := comparator.NewComparator().
 			Recorder(recorder.NewDefaultRecorder()).
 			Build()

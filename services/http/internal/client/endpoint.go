@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	api "github.com/go-clarum/agent/api/http"
 	"github.com/go-clarum/agent/config"
 	"github.com/go-clarum/agent/control"
 	"github.com/go-clarum/agent/durations"
@@ -32,35 +31,33 @@ type responsePair struct {
 	error    error
 }
 
-func newEndpoint(ic *api.InitializeClientRequest) (*endpoint, error) {
-	if clarumstrings.IsBlank(ic.Name) {
+func newEndpoint(ic *initializeRequest) (*endpoint, error) {
+	if clarumstrings.IsBlank(ic.name) {
 		return nil, errors.New("cannot create HTTP client endpoint - name is empty")
 	}
 
-	timeoutDuration := time.Duration(ic.TimeoutSeconds)
-
 	client := http.Client{
-		Timeout: durations.GetDurationWithDefault(timeoutDuration, 10*time.Second),
+		Timeout: durations.GetDurationWithDefault(ic.timeoutSeconds, 10*time.Second),
 	}
 
 	return &endpoint{
-		name:            ic.Name,
-		baseUrl:         ic.BaseUrl,
-		contentType:     ic.ContentType,
+		name:            ic.name,
+		baseUrl:         ic.baseUrl,
+		contentType:     ic.contentType,
 		client:          &client,
 		responseChannel: make(chan *responsePair),
-		logger:          logging.NewLogger(clientLoggerName(ic.Name)),
+		logger:          logging.NewLogger(loggerName(ic.name)),
 	}, nil
 }
 
-func (endpoint *endpoint) send(action *api.ClientSendActionRequest) error {
+func (endpoint *endpoint) send(action *sendAction) error {
 	if action == nil {
 		return endpoint.handleError("send action is nil", nil)
 	}
 
-	endpoint.logger.Debugf("action to send [%s]", action.String())
+	endpoint.logger.Debugf("action to send [%s]", action.ToString())
 	endpoint.enrichSendAction(action)
-	endpoint.logger.Debugf("will send action [%s]", action.String())
+	endpoint.logger.Debugf("will send action [%s]", action.ToString())
 
 	if err := endpoint.validateMessageToSend(action); err != nil {
 		return err
@@ -77,7 +74,7 @@ func (endpoint *endpoint) send(action *api.ClientSendActionRequest) error {
 		control.RunningActions.Add(1)
 		defer control.RunningActions.Done()
 
-		endpoint.logOutgoingRequest(action.Payload, req)
+		endpoint.logOutgoingRequest(action.payload, req)
 		res, err := endpoint.client.Do(req)
 
 		// we log the error here directly, but will do error handling downstream
@@ -105,11 +102,11 @@ func (endpoint *endpoint) send(action *api.ClientSendActionRequest) error {
 }
 
 // validationOptions pass by value is intentional
-func (endpoint *endpoint) receive(action *api.ClientReceiveActionRequest) (*http.Response, error) {
+func (endpoint *endpoint) receive(action *receiveAction) (*http.Response, error) {
 	if action == nil {
 		return nil, endpoint.handleError("receive action is nil", nil)
 	}
-	endpoint.logger.Debugf("action to receive [%s]", action.String())
+	endpoint.logger.Debugf("action to receive [%s]", action.ToString())
 
 	select {
 	case responsePair := <-endpoint.responseChannel:
@@ -118,67 +115,67 @@ func (endpoint *endpoint) receive(action *api.ClientReceiveActionRequest) (*http
 		}
 
 		endpoint.enrichReceiveAction(action)
-		endpoint.logger.Debugf("validating receive action [%s]", action.String())
+		endpoint.logger.Debugf("validating receive action [%s]", action.ToString())
 
 		return responsePair.response, errors.Join(
-			validators.ValidateHttpStatusCode(int(action.StatusCode), responsePair.response.StatusCode, endpoint.logger),
-			validators.ValidateHttpHeaders(action.Headers, responsePair.response.Header, endpoint.logger),
-			validators.ValidateHttpPayload(&action.Payload, responsePair.response.Body,
-				action.PayloadType, endpoint.logger))
+			validators.ValidateHttpStatusCode(action.statusCode, responsePair.response.StatusCode, endpoint.logger),
+			validators.ValidateHttpHeaders(action.headers, responsePair.response.Header, endpoint.logger),
+			validators.ValidateHttpPayload(&action.payload, responsePair.response.Body,
+				action.payloadType, endpoint.logger))
 	case <-time.After(config.ActionTimeout()):
 		return nil, endpoint.handleError("receive action timed out - no response received for validation", nil)
 	}
 }
 
 // Put missing data into a message to send: baseUrl & ContentType Header
-func (endpoint *endpoint) enrichSendAction(action *api.ClientSendActionRequest) {
-	if clarumstrings.IsBlank(action.Url) {
-		action.Url = endpoint.baseUrl
+func (endpoint *endpoint) enrichSendAction(action *sendAction) {
+	if clarumstrings.IsBlank(action.url) {
+		action.url = endpoint.baseUrl
 	}
-	if len(action.Headers) == 0 || clarumstrings.IsBlank(action.Headers[constants.ContentTypeHeaderName]) {
-		action.Headers[constants.ContentTypeHeaderName] = endpoint.contentType
+	if clarumstrings.IsBlank(action.headers[constants.ContentTypeHeaderName]) {
+		action.headers[constants.ContentTypeHeaderName] = endpoint.contentType
 	}
 }
 
 // Put missing data into message to receive: ContentType Header
-func (endpoint *endpoint) enrichReceiveAction(action *api.ClientReceiveActionRequest) {
+func (endpoint *endpoint) enrichReceiveAction(action *receiveAction) {
 	if clarumstrings.IsNotBlank(endpoint.contentType) {
-		if _, exists := action.Headers[constants.ContentTypeHeaderName]; !exists {
-			action.Headers[constants.ContentTypeHeaderName] = endpoint.contentType
+		if _, exists := action.headers[constants.ContentTypeHeaderName]; !exists {
+			action.headers[constants.ContentTypeHeaderName] = endpoint.contentType
 		}
 	}
 }
 
-func (endpoint *endpoint) validateMessageToSend(action *api.ClientSendActionRequest) error {
-	if clarumstrings.IsBlank(action.Method) {
+func (endpoint *endpoint) validateMessageToSend(action *sendAction) error {
+	if clarumstrings.IsBlank(action.method) {
 		return endpoint.handleError("send action is invalid - missing HTTP method", nil)
 	}
-	if clarumstrings.IsBlank(action.Url) {
+	if clarumstrings.IsBlank(action.url) {
 		return endpoint.handleError("send action is invalid - missing url", nil)
 	}
-	if !utils.IsValidUrl(action.Url) {
+	if !utils.IsValidUrl(action.url) {
 		return endpoint.handleError("send action is invalid - invalid url", nil)
 	}
 
 	return nil
 }
 
-func (endpoint *endpoint) buildRequest(action *api.ClientSendActionRequest) (*http.Request, error) {
-	url := utils.BuildPath(action.Url, action.Path)
+func (endpoint *endpoint) buildRequest(action *sendAction) (*http.Request, error) {
+	url := utils.BuildPath(action.url, action.path)
 
-	req, err := http.NewRequest(action.Method, url, bytes.NewBufferString(action.Payload))
+	req, err := http.NewRequest(action.method, url, bytes.NewBufferString(action.payload))
 	if err != nil {
 		endpoint.logger.Errorf("error - %s", err)
 		return nil, err
 	}
 
-	for header, value := range action.Headers {
+	for header, value := range action.headers {
 		req.Header.Set(header, value)
 	}
 
 	qParams := req.URL.Query()
-	for key, list := range action.QueryParams {
-		for _, value := range list.Values {
+	for key, values := range action.queryParams {
+		for _, value := range values {
 			qParams.Add(key, value)
 		}
 	}
@@ -230,23 +227,6 @@ func (endpoint *endpoint) logIncomingResponse(res *http.Response) {
 		res.Status, res.Header, bodyString)
 }
 
-func clientLoggerName(endpointName string) string {
+func loggerName(endpointName string) string {
 	return fmt.Sprintf("%s:", endpointName)
-}
-
-// TODO: check if this is needed
-func sendActionToString(action *api.ClientSendActionRequest) string {
-	return fmt.Sprintf(
-		"["+
-			"Name: %s, "+
-			"Method: %s, "+
-			"Url: %s, "+
-			"Path: '%s', "+
-			"Headers: %s, "+
-			"QueryParams: %s, "+
-			"Payload: %s,"+
-			"EndpointName: %s"+
-			"]",
-		action.Name, action.Method, action.Url, action.Path,
-		action.Headers, action.QueryParams, action.Payload, action.EndpointName)
 }
