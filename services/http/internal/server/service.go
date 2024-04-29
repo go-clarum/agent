@@ -6,7 +6,7 @@ import (
 )
 
 type ServerEndpoint interface {
-	InitializeEndpoint(is *initializeRequest) error
+	InitializeEndpoint(is *initRequest) error
 	SendAction(sendAction *sendAction) error
 	ReceiveAction(receiveAction *receiveAction) (*http.Request, error)
 }
@@ -23,7 +23,7 @@ func NewHttpServerService() *service {
 	}
 }
 
-func (s *service) InitializeEndpoint(is *initializeRequest) error {
+func (s *service) InitializeEndpoint(is *initRequest) error {
 	newEndpoint := newEndpoint(is)
 
 	if oldEndpoint, exists := s.endpoints[newEndpoint.name]; exists {

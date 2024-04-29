@@ -10,7 +10,7 @@ import (
 // the purpose of this layer is to separate the internal model from the grpc one
 // only data type mapping should happen here, no business logic (like setting defaults)
 
-type initializeRequest struct {
+type initRequest struct {
 	name           string
 	port           uint
 	contentType    string
@@ -38,8 +38,8 @@ type receiveAction struct {
 	endpointName string
 }
 
-func NewInitializeRequestFrom(is *api.InitializeServerRequest) *initializeRequest {
-	return &initializeRequest{
+func NewInitRequestFrom(is *api.InitServerRequest) *initRequest {
+	return &initRequest{
 		name:           is.Name,
 		port:           uint(is.Port),
 		timeoutSeconds: time.Duration(is.TimeoutSeconds) * time.Second,

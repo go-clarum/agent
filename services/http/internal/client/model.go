@@ -11,7 +11,7 @@ import (
 // the purpose of this layer is to separate the internal model from the grpc one
 // only data type mapping should happen here, no business logic (like setting defaults)
 
-type initializeRequest struct {
+type initRequest struct {
 	name           string
 	baseUrl        string
 	contentType    string
@@ -38,8 +38,8 @@ type receiveAction struct {
 	endpointName string
 }
 
-func NewInitializeRequestFrom(is *api.InitializeClientRequest) *initializeRequest {
-	return &initializeRequest{
+func NewInitRequestFrom(is *api.InitClientRequest) *initRequest {
+	return &initRequest{
 		name:           is.Name,
 		baseUrl:        is.BaseUrl,
 		contentType:    is.ContentType,

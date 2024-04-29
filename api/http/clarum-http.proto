@@ -3,8 +3,8 @@ syntax = "proto3";
 option go_package = "github.com/go-clarum/agent/api/http";
 
 service HttpService {
-  rpc InitClientEndpoint(InitializeClientRequest) returns (InitializeClientResponse) {}
-  rpc InitServerEndpoint(InitializeServerRequest) returns (InitializeServerResponse) {}
+  rpc InitClientEndpoint(InitClientRequest) returns (InitClientResponse) {}
+  rpc InitServerEndpoint(InitServerRequest) returns (InitServerResponse) {}
 
   rpc ClientSendAction(ClientSendActionRequest) returns (ClientSendActionResponse) {}
   rpc ClientReceiveAction(ClientReceiveActionRequest) returns (ClientReceiveActionResponse) {}
@@ -13,23 +13,23 @@ service HttpService {
   rpc ServerReceiveAction(ServerReceiveActionRequest) returns (ServerReceiveActionResponse) {}
 }
 
-message InitializeClientRequest {
+message InitClientRequest {
   string name = 1;
   string base_url = 2;
   string content_type = 3;
   int32 timeout_seconds = 4;
 }
-message InitializeClientResponse {
+message InitClientResponse {
   string error = 1;
 }
 
-message InitializeServerRequest {
+message InitServerRequest {
   string name = 1;
   int32 port = 2;
   string content_type = 3;
   int32 timeout_seconds = 4;
 }
-message InitializeServerResponse {
+message InitServerResponse {
   string error = 1;
 }
 

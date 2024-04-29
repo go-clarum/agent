@@ -44,7 +44,7 @@ type sendPair struct {
 	error    error
 }
 
-func newEndpoint(is *initializeRequest) *endpoint {
+func newEndpoint(is *initRequest) *endpoint {
 	ctx, cancelCtx := context.WithCancel(context.Background())
 	sendChannel := make(chan *sendPair)
 	requestChannel := make(chan *http.Request)

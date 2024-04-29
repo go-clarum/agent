@@ -6,7 +6,7 @@ import (
 )
 
 type ClientEndpoint interface {
-	InitializeEndpoint(req *initializeRequest) error
+	InitializeEndpoint(req *initRequest) error
 	SendAction(sendAction *sendAction) error
 	ReceiveAction(receiveAction *receiveAction) (*http.Response, error)
 }
@@ -23,7 +23,7 @@ func NewHttpClientService() *service {
 	}
 }
 
-func (s *service) InitializeEndpoint(req *initializeRequest) error {
+func (s *service) InitializeEndpoint(req *initRequest) error {
 	newEndpoint, err := newEndpoint(req)
 
 	if err != nil {

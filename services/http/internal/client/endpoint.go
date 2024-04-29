@@ -31,7 +31,7 @@ type responsePair struct {
 	error    error
 }
 
-func newEndpoint(ic *initializeRequest) (*endpoint, error) {
+func newEndpoint(ic *initRequest) (*endpoint, error) {
 	if clarumstrings.IsBlank(ic.name) {
 		return nil, errors.New("cannot create HTTP client endpoint - name is empty")
 	}

@@ -22,20 +22,20 @@ func RegisterHttpService(server *grpc.Server) {
 	RegisterHttpServiceServer(server, &grpcService{})
 }
 
-func (s *grpcService) InitClientEndpoint(ctx context.Context, ic *InitializeClientRequest) (*InitializeClientResponse, error) {
-	ir := client.NewInitializeRequestFrom(ic)
+func (s *grpcService) InitClientEndpoint(ctx context.Context, ic *InitClientRequest) (*InitClientResponse, error) {
+	ir := client.NewInitRequestFrom(ic)
 	err := httpClientService.InitializeEndpoint(ir)
 
-	return &InitializeClientResponse{
+	return &InitClientResponse{
 		Error: fmt.Sprintf("%s", err),
 	}, nil
 }
 
-func (s *grpcService) InitServerEndpoint(ctx context.Context, is *InitializeServerRequest) (*InitializeServerResponse, error) {
-	req := server.NewInitializeRequestFrom(is)
+func (s *grpcService) InitServerEndpoint(ctx context.Context, is *InitServerRequest) (*InitServerResponse, error) {
+	req := server.NewInitRequestFrom(is)
 	err := httpServerService.InitializeEndpoint(req)
 
-	return &InitializeServerResponse{
+	return &InitServerResponse{
 		Error: fmt.Sprintf("%s", err),
 	}, nil
 }
