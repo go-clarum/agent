@@ -9,12 +9,11 @@ service AgentService {
 
 message StatusRequest {}
 message StatusResponse {
-  string error = 1;
+  string version = 1;
 }
 
 message ShutdownRequest {}
 message ShutdownResponse {
-  string error = 1;
 }
 
 
