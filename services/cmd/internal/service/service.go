@@ -6,7 +6,7 @@ import (
 	"github.com/go-clarum/agent/logging"
 )
 
-type CommandEndpoint interface {
+type CommandService interface {
 	InitializeEndpoint(name string, cmdComponents []string, warmupMillis int32) error
 	ShutdownEndpoint(name string) error
 }
@@ -16,7 +16,7 @@ type service struct {
 	logger    *logging.Logger
 }
 
-func NewCommandService() *service {
+func NewCommandService() CommandService {
 	return &service{
 		endpoints: make(map[string]*endpoint),
 		logger:    logging.NewLogger("CommandService"),
