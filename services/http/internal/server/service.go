@@ -5,10 +5,10 @@ import (
 	"net/http"
 )
 
-type ServerEndpoint interface {
-	InitializeEndpoint(is *initRequest) error
-	SendAction(sendAction *sendAction) error
-	ReceiveAction(receiveAction *receiveAction) (*http.Request, error)
+type ServerService interface {
+	InitializeEndpoint(is *InitRequest) error
+	SendAction(sendAction *SendAction) error
+	ReceiveAction(receiveAction *ReceiveAction) (*http.Request, error)
 }
 
 type service struct {
@@ -16,14 +16,14 @@ type service struct {
 	logger    *logging.Logger
 }
 
-func NewHttpServerService() *service {
+func NewHttpServerService() ServerService {
 	return &service{
 		endpoints: make(map[string]*endpoint),
 		logger:    logging.NewLogger("HttpServerService"),
 	}
 }
 
-func (s *service) InitializeEndpoint(is *initRequest) error {
+func (s *service) InitializeEndpoint(is *InitRequest) error {
 	newEndpoint := newEndpoint(is)
 
 	if oldEndpoint, exists := s.endpoints[newEndpoint.name]; exists {
@@ -39,21 +39,21 @@ func (s *service) InitializeEndpoint(is *initRequest) error {
 	return nil
 }
 
-func (s *service) SendAction(sendAction *sendAction) error {
-	endpoint, exists := s.endpoints[sendAction.endpointName]
+func (s *service) SendAction(sendAction *SendAction) error {
+	endpoint, exists := s.endpoints[sendAction.EndpointName]
 	if !exists {
 		s.logger.Errorf("HTTP server endpoint [%s] not found - action [%s] will not be executed",
-			sendAction.endpointName, sendAction.name)
+			sendAction.EndpointName, sendAction.Name)
 	}
 
 	return endpoint.send(sendAction)
 }
 
-func (s *service) ReceiveAction(receiveAction *receiveAction) (*http.Request, error) {
-	endpoint, exists := s.endpoints[receiveAction.endpointName]
+func (s *service) ReceiveAction(receiveAction *ReceiveAction) (*http.Request, error) {
+	endpoint, exists := s.endpoints[receiveAction.EndpointName]
 	if !exists {
 		s.logger.Errorf("HTTP server endpoint [%s] not found - action [%s] will not be executed",
-			receiveAction.endpointName, receiveAction.name)
+			receiveAction.EndpointName, receiveAction.Name)
 	}
 
 	return endpoint.receive(receiveAction)

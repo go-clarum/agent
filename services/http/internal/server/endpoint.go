@@ -40,32 +40,32 @@ type endpointContext struct {
 }
 
 type sendPair struct {
-	response *sendAction
+	response *SendAction
 	error    error
 }
 
-func newEndpoint(is *initRequest) *endpoint {
+func newEndpoint(is *InitRequest) *endpoint {
 	ctx, cancelCtx := context.WithCancel(context.Background())
 	sendChannel := make(chan *sendPair)
 	requestChannel := make(chan *http.Request)
 
 	se := &endpoint{
-		name:                     is.name,
-		port:                     is.port,
-		contentType:              is.contentType,
-		serverTimeout:            is.timeoutSeconds,
+		name:                     is.Name,
+		port:                     is.Port,
+		contentType:              is.ContentType,
+		serverTimeout:            is.TimeoutSeconds,
 		context:                  ctx,
 		cancelContext:            cancelCtx,
 		sendChannel:              sendChannel,
 		requestValidationChannel: requestChannel,
-		logger:                   logging.NewLogger(loggerName(is.name)),
+		logger:                   logging.NewLogger(loggerName(is.Name)),
 	}
 
 	return se
 }
 
 // this Method is blocking, until a request is received
-func (endpoint *endpoint) receive(action *receiveAction) (*http.Request, error) {
+func (endpoint *endpoint) receive(action *ReceiveAction) (*http.Request, error) {
 	endpoint.logger.Debugf("action to receive %s", action.ToString())
 	endpoint.enrichReceiveAction(action)
 
@@ -74,18 +74,18 @@ func (endpoint *endpoint) receive(action *receiveAction) (*http.Request, error) 
 		endpoint.logger.Debugf("validation action %s", action.ToString())
 
 		return receivedRequest, errors.Join(
-			validators.ValidatePath(action.path, receivedRequest.URL, endpoint.logger),
-			validators.ValidateHttpMethod(action.method, receivedRequest.Method, endpoint.logger),
-			validators.ValidateHttpHeaders(action.headers, receivedRequest.Header, endpoint.logger),
-			validators.ValidateHttpQueryParams(action.queryParams, receivedRequest.URL, endpoint.logger),
-			validators.ValidateHttpPayload(&action.payload, receivedRequest.Body,
-				action.payloadType, endpoint.logger))
+			validators.ValidatePath(action.Path, receivedRequest.URL, endpoint.logger),
+			validators.ValidateHttpMethod(action.Method, receivedRequest.Method, endpoint.logger),
+			validators.ValidateHttpHeaders(action.Headers, receivedRequest.Header, endpoint.logger),
+			validators.ValidateHttpQueryParams(action.QueryParams, receivedRequest.URL, endpoint.logger),
+			validators.ValidateHttpPayload(&action.Payload, receivedRequest.Body,
+				action.PayloadType, endpoint.logger))
 	case <-time.After(config.ActionTimeout()):
 		return nil, endpoint.handleError("receive action timed out - no request received for validation", nil)
 	}
 }
 
-func (endpoint *endpoint) send(action *sendAction) error {
+func (endpoint *endpoint) send(action *SendAction) error {
 	endpoint.enrichSendAction(action)
 	err := endpoint.validateMessageToSend(action)
 
@@ -103,17 +103,17 @@ func (endpoint *endpoint) send(action *sendAction) error {
 	}
 }
 
-func (endpoint *endpoint) enrichReceiveAction(action *receiveAction) {
+func (endpoint *endpoint) enrichReceiveAction(action *ReceiveAction) {
 	if clarumstrings.IsNotBlank(endpoint.contentType) {
-		if _, exists := action.headers[constants.ContentTypeHeaderName]; !exists {
-			action.headers[constants.ContentTypeHeaderName] = endpoint.contentType
+		if _, exists := action.Headers[constants.ContentTypeHeaderName]; !exists {
+			action.Headers[constants.ContentTypeHeaderName] = endpoint.contentType
 		}
 	}
 }
 
-func (endpoint *endpoint) enrichSendAction(action *sendAction) {
-	if clarumstrings.IsBlank(action.headers[constants.ContentTypeHeaderName]) {
-		action.headers[constants.ContentTypeHeaderName] = endpoint.contentType
+func (endpoint *endpoint) enrichSendAction(action *SendAction) {
+	if clarumstrings.IsBlank(action.Headers[constants.ContentTypeHeaderName]) {
+		action.Headers[constants.ContentTypeHeaderName] = endpoint.contentType
 	}
 }
 
@@ -214,17 +214,17 @@ func (endpoint *endpoint) shutdown() {
 }
 
 func sendResponse(logger *logging.Logger, sendPair *sendPair, resWriter http.ResponseWriter) {
-	for header, value := range sendPair.response.headers {
+	for header, value := range sendPair.response.Headers {
 		resWriter.Header().Set(header, value)
 	}
 
-	resWriter.WriteHeader(sendPair.response.statusCode)
+	resWriter.WriteHeader(sendPair.response.StatusCode)
 
-	_, err := io.WriteString(resWriter, sendPair.response.payload)
+	_, err := io.WriteString(resWriter, sendPair.response.Payload)
 	if err != nil {
 		logger.Errorf("could not write response body - %s", err)
 	}
-	logOutgoingResponse(logger, sendPair.response.statusCode, sendPair.response.payload, resWriter)
+	logOutgoingResponse(logger, sendPair.response.StatusCode, sendPair.response.Payload, resWriter)
 }
 
 func sendDefaultErrorResponse(logger *logging.Logger, errorMessage string, resWriter http.ResponseWriter) {
@@ -233,10 +233,10 @@ func sendDefaultErrorResponse(logger *logging.Logger, errorMessage string, resWr
 	logOutgoingResponse(logger, http.StatusInternalServerError, "", resWriter)
 }
 
-func (endpoint *endpoint) validateMessageToSend(action *sendAction) error {
-	if action.statusCode < 100 || action.statusCode > 999 {
+func (endpoint *endpoint) validateMessageToSend(action *SendAction) error {
+	if action.StatusCode < 100 || action.StatusCode > 999 {
 		return endpoint.handleError(fmt.Sprintf("action to send is invalid - unsupported status code [%d]",
-			action.statusCode), nil)
+			action.StatusCode), nil)
 	}
 
 	return nil

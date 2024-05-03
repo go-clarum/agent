@@ -31,26 +31,26 @@ type responsePair struct {
 	error    error
 }
 
-func newEndpoint(ic *initRequest) (*endpoint, error) {
-	if clarumstrings.IsBlank(ic.name) {
+func newEndpoint(ic *InitRequest) (*endpoint, error) {
+	if clarumstrings.IsBlank(ic.Name) {
 		return nil, errors.New("cannot create HTTP client endpoint - name is empty")
 	}
 
 	client := http.Client{
-		Timeout: durations.GetDurationWithDefault(ic.timeoutSeconds, 10*time.Second),
+		Timeout: durations.GetDurationWithDefault(ic.TimeoutSeconds, 10*time.Second),
 	}
 
 	return &endpoint{
-		name:            ic.name,
-		baseUrl:         ic.baseUrl,
-		contentType:     ic.contentType,
+		name:            ic.Name,
+		baseUrl:         ic.BaseUrl,
+		contentType:     ic.ContentType,
 		client:          &client,
 		responseChannel: make(chan *responsePair),
-		logger:          logging.NewLogger(loggerName(ic.name)),
+		logger:          logging.NewLogger(loggerName(ic.Name)),
 	}, nil
 }
 
-func (endpoint *endpoint) send(action *sendAction) error {
+func (endpoint *endpoint) send(action *SendAction) error {
 	if action == nil {
 		return endpoint.handleError("send action is nil", nil)
 	}
@@ -74,7 +74,7 @@ func (endpoint *endpoint) send(action *sendAction) error {
 		control.RunningActions.Add(1)
 		defer control.RunningActions.Done()
 
-		endpoint.logOutgoingRequest(action.payload, req)
+		endpoint.logOutgoingRequest(action.Payload, req)
 		res, err := endpoint.client.Do(req)
 
 		// we log the error here directly, but will do error handling downstream
@@ -102,7 +102,7 @@ func (endpoint *endpoint) send(action *sendAction) error {
 }
 
 // validationOptions pass by value is intentional
-func (endpoint *endpoint) receive(action *receiveAction) (*http.Response, error) {
+func (endpoint *endpoint) receive(action *ReceiveAction) (*http.Response, error) {
 	if action == nil {
 		return nil, endpoint.handleError("receive action is nil", nil)
 	}
@@ -118,63 +118,63 @@ func (endpoint *endpoint) receive(action *receiveAction) (*http.Response, error)
 		endpoint.logger.Debugf("validating receive action [%s]", action.ToString())
 
 		return responsePair.response, errors.Join(
-			validators.ValidateHttpStatusCode(action.statusCode, responsePair.response.StatusCode, endpoint.logger),
-			validators.ValidateHttpHeaders(action.headers, responsePair.response.Header, endpoint.logger),
-			validators.ValidateHttpPayload(&action.payload, responsePair.response.Body,
-				action.payloadType, endpoint.logger))
+			validators.ValidateHttpStatusCode(action.StatusCode, responsePair.response.StatusCode, endpoint.logger),
+			validators.ValidateHttpHeaders(action.Headers, responsePair.response.Header, endpoint.logger),
+			validators.ValidateHttpPayload(&action.Payload, responsePair.response.Body,
+				action.PayloadType, endpoint.logger))
 	case <-time.After(config.ActionTimeout()):
 		return nil, endpoint.handleError("receive action timed out - no response received for validation", nil)
 	}
 }
 
 // Put missing data into a message to send: baseUrl & ContentType Header
-func (endpoint *endpoint) enrichSendAction(action *sendAction) {
-	if clarumstrings.IsBlank(action.url) {
-		action.url = endpoint.baseUrl
+func (endpoint *endpoint) enrichSendAction(action *SendAction) {
+	if clarumstrings.IsBlank(action.Url) {
+		action.Url = endpoint.baseUrl
 	}
-	if clarumstrings.IsBlank(action.headers[constants.ContentTypeHeaderName]) {
-		action.headers[constants.ContentTypeHeaderName] = endpoint.contentType
+	if clarumstrings.IsBlank(action.Headers[constants.ContentTypeHeaderName]) {
+		action.Headers[constants.ContentTypeHeaderName] = endpoint.contentType
 	}
 }
 
 // Put missing data into message to receive: ContentType Header
-func (endpoint *endpoint) enrichReceiveAction(action *receiveAction) {
+func (endpoint *endpoint) enrichReceiveAction(action *ReceiveAction) {
 	if clarumstrings.IsNotBlank(endpoint.contentType) {
-		if _, exists := action.headers[constants.ContentTypeHeaderName]; !exists {
-			action.headers[constants.ContentTypeHeaderName] = endpoint.contentType
+		if _, exists := action.Headers[constants.ContentTypeHeaderName]; !exists {
+			action.Headers[constants.ContentTypeHeaderName] = endpoint.contentType
 		}
 	}
 }
 
-func (endpoint *endpoint) validateMessageToSend(action *sendAction) error {
-	if clarumstrings.IsBlank(action.method) {
+func (endpoint *endpoint) validateMessageToSend(action *SendAction) error {
+	if clarumstrings.IsBlank(action.Method) {
 		return endpoint.handleError("send action is invalid - missing HTTP method", nil)
 	}
-	if clarumstrings.IsBlank(action.url) {
+	if clarumstrings.IsBlank(action.Url) {
 		return endpoint.handleError("send action is invalid - missing url", nil)
 	}
-	if !utils.IsValidUrl(action.url) {
+	if !utils.IsValidUrl(action.Url) {
 		return endpoint.handleError("send action is invalid - invalid url", nil)
 	}
 
 	return nil
 }
 
-func (endpoint *endpoint) buildRequest(action *sendAction) (*http.Request, error) {
-	url := utils.BuildPath(action.url, action.path)
+func (endpoint *endpoint) buildRequest(action *SendAction) (*http.Request, error) {
+	url := utils.BuildPath(action.Url, action.Path)
 
-	req, err := http.NewRequest(action.method, url, bytes.NewBufferString(action.payload))
+	req, err := http.NewRequest(action.Method, url, bytes.NewBufferString(action.Payload))
 	if err != nil {
 		endpoint.logger.Errorf("error - %s", err)
 		return nil, err
 	}
 
-	for header, value := range action.headers {
+	for header, value := range action.Headers {
 		req.Header.Set(header, value)
 	}
 
 	qParams := req.URL.Query()
-	for key, values := range action.queryParams {
+	for key, values := range action.QueryParams {
 		for _, value := range values {
 			qParams.Add(key, value)
 		}

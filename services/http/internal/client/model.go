@@ -2,76 +2,39 @@ package client
 
 import (
 	"fmt"
-	api "github.com/go-clarum/agent/api/http"
 	"github.com/go-clarum/agent/services/http/internal"
 	"strconv"
 	"time"
 )
 
-// the purpose of this layer is to separate the internal model from the grpc one
-// only data type mapping should happen here, no business logic (like setting defaults)
-
-type initRequest struct {
-	name           string
-	baseUrl        string
-	contentType    string
-	timeoutSeconds time.Duration
+type InitRequest struct {
+	Name           string
+	BaseUrl        string
+	ContentType    string
+	TimeoutSeconds time.Duration
 }
 
-type sendAction struct {
-	name         string
-	url          string
-	path         string
-	method       string
-	queryParams  map[string][]string
-	headers      map[string]string
-	payload      string
-	endpointName string
+type SendAction struct {
+	Name         string
+	Url          string
+	Path         string
+	Method       string
+	QueryParams  map[string][]string
+	Headers      map[string]string
+	Payload      string
+	EndpointName string
 }
 
-type receiveAction struct {
-	name         string
-	payloadType  internal.PayloadType
-	statusCode   int
-	headers      map[string]string
-	payload      string
-	endpointName string
+type ReceiveAction struct {
+	Name         string
+	PayloadType  internal.PayloadType
+	StatusCode   int
+	Headers      map[string]string
+	Payload      string
+	EndpointName string
 }
 
-func NewInitRequestFrom(is *api.InitClientRequest) *initRequest {
-	return &initRequest{
-		name:           is.Name,
-		baseUrl:        is.BaseUrl,
-		contentType:    is.ContentType,
-		timeoutSeconds: time.Duration(is.TimeoutSeconds) * time.Second,
-	}
-}
-
-func NewSendActionFrom(sa *api.ClientSendActionRequest) *sendAction {
-	return &sendAction{
-		name:         sa.Name,
-		url:          sa.Url,
-		path:         sa.Path,
-		method:       sa.Method,
-		queryParams:  parseQueryParams(sa.QueryParams),
-		headers:      sa.Headers,
-		payload:      sa.Payload,
-		endpointName: sa.EndpointName,
-	}
-}
-
-func NewReceiveActionFrom(sa *api.ClientReceiveActionRequest) *receiveAction {
-	return &receiveAction{
-		name:         sa.Name,
-		payloadType:  internal.PayloadType(sa.PayloadType),
-		statusCode:   int(sa.StatusCode),
-		headers:      sa.Headers,
-		payload:      sa.Payload,
-		endpointName: sa.EndpointName,
-	}
-}
-
-func (action *sendAction) ToString() string {
+func (action *SendAction) ToString() string {
 	return fmt.Sprintf(
 		"["+
 			"Method: %s, "+
@@ -81,33 +44,21 @@ func (action *sendAction) ToString() string {
 			"QueryParams: %s, "+
 			"Payload: %s"+
 			"]",
-		action.method, action.url, action.path,
-		action.headers, action.queryParams, action.payload)
+		action.Method, action.Url, action.Path,
+		action.Headers, action.QueryParams, action.Payload)
 }
 
-func (action *receiveAction) ToString() string {
+func (action *ReceiveAction) ToString() string {
 	statusCodeText := "none"
-	if action.statusCode > 0 {
-		statusCodeText = strconv.Itoa(action.statusCode)
+	if action.StatusCode > 0 {
+		statusCodeText = strconv.Itoa(action.StatusCode)
 	}
 
 	return fmt.Sprintf(
 		"["+
 			"StatusCode: %s, "+
 			"Headers: %s, "+
-			"MessagePayload: %s"+
+			"Payload: %s"+
 			"]",
-		statusCodeText, action.headers, action.payload)
-}
-
-func parseQueryParams(apiQueryParams map[string]*api.StringsList) map[string][]string {
-	result := make(map[string][]string)
-
-	if apiQueryParams != nil {
-		for key, value := range apiQueryParams {
-			result[key] = value.Values
-		}
-	}
-
-	return result
+		statusCodeText, action.Headers, action.Payload)
 }

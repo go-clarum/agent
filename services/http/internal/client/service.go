@@ -5,10 +5,10 @@ import (
 	"net/http"
 )
 
-type ClientEndpoint interface {
-	InitializeEndpoint(req *initRequest) error
-	SendAction(sendAction *sendAction) error
-	ReceiveAction(receiveAction *receiveAction) (*http.Response, error)
+type ClientService interface {
+	InitializeEndpoint(req *InitRequest) error
+	SendAction(sendAction *SendAction) error
+	ReceiveAction(receiveAction *ReceiveAction) (*http.Response, error)
 }
 
 type service struct {
@@ -16,14 +16,14 @@ type service struct {
 	logger    *logging.Logger
 }
 
-func NewHttpClientService() *service {
+func NewHttpClientService() ClientService {
 	return &service{
 		endpoints: make(map[string]*endpoint),
 		logger:    logging.NewLogger("HttpClientService"),
 	}
 }
 
-func (s *service) InitializeEndpoint(req *initRequest) error {
+func (s *service) InitializeEndpoint(req *InitRequest) error {
 	newEndpoint, err := newEndpoint(req)
 
 	if err != nil {
@@ -41,21 +41,21 @@ func (s *service) InitializeEndpoint(req *initRequest) error {
 	return nil
 }
 
-func (s *service) SendAction(sendAction *sendAction) error {
-	endpoint, exists := s.endpoints[sendAction.endpointName]
+func (s *service) SendAction(sendAction *SendAction) error {
+	endpoint, exists := s.endpoints[sendAction.EndpointName]
 	if !exists {
 		s.logger.Errorf("HTTP client endpoint [%s] not found - action [%s] will not be executed",
-			sendAction.endpointName, sendAction.name)
+			sendAction.EndpointName, sendAction.Name)
 	}
 
 	return endpoint.send(sendAction)
 }
 
-func (s *service) ReceiveAction(receiveAction *receiveAction) (*http.Response, error) {
-	endpoint, exists := s.endpoints[receiveAction.endpointName]
+func (s *service) ReceiveAction(receiveAction *ReceiveAction) (*http.Response, error) {
+	endpoint, exists := s.endpoints[receiveAction.EndpointName]
 	if !exists {
 		s.logger.Errorf("HTTP client endpoint [%s] not found - action [%s] will not be executed",
-			receiveAction.endpointName, receiveAction.name)
+			receiveAction.EndpointName, receiveAction.Name)
 	}
 
 	return endpoint.receive(receiveAction)

@@ -23,7 +23,7 @@ func RegisterHttpService(server *grpc.Server) {
 }
 
 func (s *grpcService) InitClientEndpoint(ctx context.Context, ic *InitClientRequest) (*InitClientResponse, error) {
-	ir := client.NewInitRequestFrom(ic)
+	ir := newClientInitRequestFrom(ic)
 	err := httpClientService.InitializeEndpoint(ir)
 
 	return &InitClientResponse{
@@ -32,7 +32,7 @@ func (s *grpcService) InitClientEndpoint(ctx context.Context, ic *InitClientRequ
 }
 
 func (s *grpcService) InitServerEndpoint(ctx context.Context, is *InitServerRequest) (*InitServerResponse, error) {
-	req := server.NewInitRequestFrom(is)
+	req := newServerInitRequestFrom(is)
 	err := httpServerService.InitializeEndpoint(req)
 
 	return &InitServerResponse{
@@ -41,7 +41,7 @@ func (s *grpcService) InitServerEndpoint(ctx context.Context, is *InitServerRequ
 }
 
 func (s *grpcService) ClientSendAction(ctx context.Context, sendAction *ClientSendActionRequest) (*ClientSendActionResponse, error) {
-	sa := client.NewSendActionFrom(sendAction)
+	sa := newClientSendActionFrom(sendAction)
 	err := httpClientService.SendAction(sa)
 
 	return &ClientSendActionResponse{
@@ -50,7 +50,7 @@ func (s *grpcService) ClientSendAction(ctx context.Context, sendAction *ClientSe
 }
 
 func (s *grpcService) ClientReceiveAction(ctx context.Context, receiveAction *ClientReceiveActionRequest) (*ClientReceiveActionResponse, error) {
-	ra := client.NewReceiveActionFrom(receiveAction)
+	ra := newClientReceiveActionFrom(receiveAction)
 	_, err := httpClientService.ReceiveAction(ra)
 
 	return &ClientReceiveActionResponse{
@@ -59,7 +59,7 @@ func (s *grpcService) ClientReceiveAction(ctx context.Context, receiveAction *Cl
 }
 
 func (s *grpcService) ServerSendAction(ctx context.Context, sendAction *ServerSendActionRequest) (*ServerSendActionResponse, error) {
-	sa := server.NewSendActionFrom(sendAction)
+	sa := newServerSendActionFrom(sendAction)
 	err := httpServerService.SendAction(sa)
 
 	return &ServerSendActionResponse{
@@ -68,7 +68,7 @@ func (s *grpcService) ServerSendAction(ctx context.Context, sendAction *ServerSe
 }
 
 func (s *grpcService) ServerReceiveAction(ctx context.Context, receiveAction *ServerReceiveActionRequest) (*ServerReceiveActionResponse, error) {
-	ra := server.NewReceiveActionFrom(receiveAction)
+	ra := newServerReceiveActionFrom(receiveAction)
 	_, err := httpServerService.ReceiveAction(ra)
 
 	return &ServerReceiveActionResponse{
