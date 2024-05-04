@@ -36,7 +36,7 @@ message InitServerResponse {
 message ClientSendActionRequest {
   string name = 1;
   string url = 2;
-  string path = 3;
+  repeated string path = 3;
   string method = 4;
   map<string, StringsList> query_params = 5;
   map<string, string> headers = 6;
