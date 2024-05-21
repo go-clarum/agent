@@ -9,9 +9,12 @@ tasks:
     cmds:
       - echo $VERSION
 
-  build:
+  build:dev:
     cmds:
       - go build -o ./builds/{{.PROJECT}}-{{.VERSION}}
+
+  build:prod:
+    deps: [ api:generate, build:dev ]
 
   api:generate:
     cmds:

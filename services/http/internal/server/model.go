@@ -25,7 +25,7 @@ type SendAction struct {
 type ReceiveAction struct {
 	Name         string
 	Url          string
-	Path         string
+	Path         []string
 	Method       string
 	QueryParams  map[string][]string
 	Headers      map[string]string

@@ -17,7 +17,7 @@ type InitRequest struct {
 type SendAction struct {
 	Name         string
 	Url          string
-	Path         string
+	Path         []string
 	Method       string
 	QueryParams  map[string][]string
 	Headers      map[string]string

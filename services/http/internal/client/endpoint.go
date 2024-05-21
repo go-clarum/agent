@@ -161,7 +161,7 @@ func (endpoint *endpoint) validateMessageToSend(action *SendAction) error {
 }
 
 func (endpoint *endpoint) buildRequest(action *SendAction) (*http.Request, error) {
-	url := utils.BuildPath(action.Url, action.Path)
+	url := utils.BuildPath(action.Url, action.Path...)
 
 	req, err := http.NewRequest(action.Method, url, bytes.NewBufferString(action.Payload))
 	if err != nil {

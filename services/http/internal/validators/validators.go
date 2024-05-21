@@ -6,6 +6,7 @@ import (
 	"github.com/go-clarum/agent/arrays"
 	"github.com/go-clarum/agent/logging"
 	"github.com/go-clarum/agent/services/http/internal"
+	"github.com/go-clarum/agent/services/http/internal/utils"
 	clarumstrings "github.com/go-clarum/agent/validators/strings"
 	"github.com/go-clarum/clarum-json/comparator"
 	"github.com/go-clarum/clarum-json/recorder"
@@ -16,8 +17,8 @@ import (
 	"strings"
 )
 
-func ValidatePath(expectedPath string, actualUrl *url.URL, logger *logging.Logger) error {
-	cleanedExpected := cleanPath(expectedPath)
+func ValidatePath(expectedPath []string, actualUrl *url.URL, logger *logging.Logger) error {
+	cleanedExpected := cleanPath(utils.BuildPath("", expectedPath...))
 	cleanedActual := cleanPath(actualUrl.Path)
 
 	if cleanedExpected != cleanedActual {
