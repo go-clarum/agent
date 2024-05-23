@@ -13,20 +13,20 @@ import (
 )
 
 func main() {
-	logging.Infof("Starting clarum agent v%s", config.Version())
+	logging.Infof("starting clarum agent v%s", config.Version())
 	control.ShutdownHook.Add(1)
 
 	initAndRunGrpcServer()
 
 	control.ShutdownHook.Wait()
-	logging.Info("Shutting down clarum agent")
+	logging.Info("shutting down clarum agent")
 }
 
 func initAndRunGrpcServer() {
 	address := fmt.Sprintf("localhost:%d", config.AgentPort())
 	lis, err := net.Listen("tcp", address)
 	if err != nil {
-		logging.Errorf("Failed to initiate GRPC server on port [%d]: %s", config.AgentPort(), err)
+		logging.Errorf("failed to initiate GRPC server on port [%d]: %s", config.AgentPort(), err)
 		return
 	}
 
@@ -36,7 +36,7 @@ func initAndRunGrpcServer() {
 	http.RegisterHttpService(grpcServer)
 	cmd.RegisterCmdService(grpcServer)
 
-	logging.Infof("Starting GRPC server on %s", address)
+	logging.Infof("starting GRPC server on %s", address)
 	if err := grpcServer.Serve(lis); err != nil {
 		logging.Errorf("GRPC server startup error: %s", err)
 	}

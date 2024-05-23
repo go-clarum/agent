@@ -132,6 +132,12 @@ func (endpoint *endpoint) enrichSendAction(action *SendAction) {
 	if clarumstrings.IsBlank(action.Url) {
 		action.Url = endpoint.baseUrl
 	}
+
+	// if no Headers have been sent by the bindings, this will be nil
+	if action.Headers == nil {
+		action.Headers = make(map[string]string)
+	}
+
 	if clarumstrings.IsBlank(action.Headers[constants.ContentTypeHeaderName]) {
 		action.Headers[constants.ContentTypeHeaderName] = endpoint.contentType
 	}

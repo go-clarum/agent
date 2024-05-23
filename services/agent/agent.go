@@ -16,17 +16,21 @@ type grpcService struct {
 }
 
 func RegisterAgentService(server *grpc.Server) {
-	logging.Infof("Registering AgentService")
+	logging.Infof("registering AgentService")
 	RegisterAgentServiceServer(server, &grpcService{})
 }
 
 func (s *grpcService) Status(ctx context.Context, request *StatusRequest) (*StatusResponse, error) {
+	logging.Infof("signaling agent status")
+
 	return &StatusResponse{
 		Version: config.Version(),
 	}, nil
 }
 
 func (s *grpcService) Shutdown(ctx context.Context, request *ShutdownRequest) (*ShutdownResponse, error) {
+	logging.Infof("received shutdown command")
+
 	defer agentService.Shutdown()
 	return &ShutdownResponse{}, nil
 }

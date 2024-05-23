@@ -34,7 +34,7 @@ func (s *service) InitializeEndpoint(is *InitRequest) error {
 	newEndpoint.start()
 
 	s.endpoints[newEndpoint.name] = newEndpoint
-	logging.Infof("registered endpoint [%s]", newEndpoint.name)
+	logging.Infof("registered HTTP server endpoint [%s]", newEndpoint.name)
 
 	return nil
 }

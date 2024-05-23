@@ -16,7 +16,7 @@ type grpcService struct {
 }
 
 func RegisterCmdService(server *grpc.Server) {
-	logging.Infof("Registering CommandService")
+	logging.Infof("registering CommandService")
 	RegisterCmdServiceServer(server, &grpcService{})
 }
 
