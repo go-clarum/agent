@@ -4,6 +4,7 @@ option go_package = "github.com/go-clarum/agent/api/agent";
 
 service AgentService {
   rpc Status(StatusRequest) returns (StatusResponse) {}
+  rpc Logs(LogsRequest) returns (stream LogEntry) {};
   rpc Shutdown(ShutdownRequest) returns (ShutdownResponse) {}
 }
 
@@ -16,4 +17,10 @@ message ShutdownRequest {}
 message ShutdownResponse {
 }
 
+message LogsRequest {
+  string listenerName = 1;
+}
+message LogEntry {
+  string message = 1;
+}
 

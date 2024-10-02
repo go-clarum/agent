@@ -3,6 +3,7 @@ package logging
 import (
 	"fmt"
 	"github.com/go-clarum/agent/config"
+	"github.com/go-clarum/agent/sync"
 	"log"
 	"log/slog"
 	"os"
@@ -12,11 +13,13 @@ import (
 var activeLogLevel slog.Level
 var internalLogger *log.Logger
 var defaultLogger *Logger
+var LogEmitter *sync.Emitter
 
 func init() {
 	activeLogLevel = parseLevel(config.LoggingLevel())
 	internalLogger = log.New(os.Stdout, "", log.LstdFlags|log.Lmicroseconds)
 	defaultLogger = NewLogger("")
+	LogEmitter = sync.NewEmitter()
 }
 
 type Logger struct {
@@ -29,49 +32,65 @@ func NewLogger(name string) *Logger {
 
 func (logger *Logger) Info(message string) {
 	if activeLogLevel <= slog.LevelInfo {
-		internalLogger.Println("INFO " + logger.name + " " + message)
+		logLine := "INFO " + logger.name + " " + message
+		internalLogger.Println(logLine)
+		LogEmitter.Send(logLine)
 	}
 }
 
 func (logger *Logger) Infof(format string, a ...any) {
 	if activeLogLevel <= slog.LevelInfo {
-		internalLogger.Println("INFO " + logger.name + " " + fmt.Sprintf(format, a...))
+		logLine := "INFO " + logger.name + " " + fmt.Sprintf(format, a...)
+		internalLogger.Println(logLine)
+		LogEmitter.Send(logLine)
 	}
 }
 
 func (logger *Logger) Debug(message string) {
 	if activeLogLevel <= slog.LevelDebug {
-		internalLogger.Println("DEBUG " + logger.name + " " + message)
+		logLine := "DEBUG " + logger.name + " " + message
+		internalLogger.Println(logLine)
+		LogEmitter.Send(logLine)
 	}
 }
 
 func (logger *Logger) Debugf(format string, a ...any) {
 	if activeLogLevel <= slog.LevelDebug {
-		internalLogger.Println("DEBUG " + logger.name + " " + fmt.Sprintf(format, a...))
+		logLine := "DEBUG " + logger.name + " " + fmt.Sprintf(format, a...)
+		internalLogger.Println(logLine)
+		LogEmitter.Send(logLine)
 	}
 }
 
 func (logger *Logger) Warn(message string) {
 	if activeLogLevel <= slog.LevelWarn {
-		internalLogger.Println("WARN " + logger.name + " " + message)
+		logLine := "WARN " + logger.name + " " + message
+		internalLogger.Println(logLine)
+		LogEmitter.Send(logLine)
 	}
 }
 
 func (logger *Logger) Warnf(format string, a ...any) {
 	if activeLogLevel <= slog.LevelWarn {
-		internalLogger.Println("WARN " + logger.name + " " + fmt.Sprintf(format, a...))
+		logLine := "WARN " + logger.name + " " + fmt.Sprintf(format, a...)
+		internalLogger.Println(logLine)
+		LogEmitter.Send(logLine)
 	}
 }
 
 func (logger *Logger) Error(message string) {
 	if activeLogLevel <= slog.LevelError {
-		internalLogger.Println("ERROR " + logger.name + " " + message)
+		logLine := "ERROR " + logger.name + " " + message
+		internalLogger.Println(logLine)
+		LogEmitter.Send(logLine)
 	}
 }
 
 func (logger *Logger) Errorf(format string, a ...any) {
 	if activeLogLevel <= slog.LevelError {
-		internalLogger.Println("ERROR " + logger.name + " " + fmt.Sprintf(format, a...))
+		logLine := "ERROR " + logger.name + " " + fmt.Sprintf(format, a...)
+		internalLogger.Println(logLine)
+		LogEmitter.Send(logLine)
 	}
 }
 

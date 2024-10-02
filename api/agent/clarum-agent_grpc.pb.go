@@ -23,6 +23,7 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type AgentServiceClient interface {
 	Status(ctx context.Context, in *StatusRequest, opts ...grpc.CallOption) (*StatusResponse, error)
+	Logs(ctx context.Context, in *LogsRequest, opts ...grpc.CallOption) (AgentService_LogsClient, error)
 	Shutdown(ctx context.Context, in *ShutdownRequest, opts ...grpc.CallOption) (*ShutdownResponse, error)
 }
 
@@ -43,6 +44,38 @@ func (c *agentServiceClient) Status(ctx context.Context, in *StatusRequest, opts
 	return out, nil
 }
 
+func (c *agentServiceClient) Logs(ctx context.Context, in *LogsRequest, opts ...grpc.CallOption) (AgentService_LogsClient, error) {
+	stream, err := c.cc.NewStream(ctx, &AgentService_ServiceDesc.Streams[0], "/AgentService/Logs", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &agentServiceLogsClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type AgentService_LogsClient interface {
+	Recv() (*LogEntry, error)
+	grpc.ClientStream
+}
+
+type agentServiceLogsClient struct {
+	grpc.ClientStream
+}
+
+func (x *agentServiceLogsClient) Recv() (*LogEntry, error) {
+	m := new(LogEntry)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *agentServiceClient) Shutdown(ctx context.Context, in *ShutdownRequest, opts ...grpc.CallOption) (*ShutdownResponse, error) {
 	out := new(ShutdownResponse)
 	err := c.cc.Invoke(ctx, "/AgentService/Shutdown", in, out, opts...)
@@ -57,6 +90,7 @@ func (c *agentServiceClient) Shutdown(ctx context.Context, in *ShutdownRequest, 
 // for forward compatibility
 type AgentServiceServer interface {
 	Status(context.Context, *StatusRequest) (*StatusResponse, error)
+	Logs(*LogsRequest, AgentService_LogsServer) error
 	Shutdown(context.Context, *ShutdownRequest) (*ShutdownResponse, error)
 	mustEmbedUnimplementedAgentServiceServer()
 }
@@ -67,6 +101,9 @@ type UnimplementedAgentServiceServer struct {
 
 func (UnimplementedAgentServiceServer) Status(context.Context, *StatusRequest) (*StatusResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Status not implemented")
+}
+func (UnimplementedAgentServiceServer) Logs(*LogsRequest, AgentService_LogsServer) error {
+	return status.Errorf(codes.Unimplemented, "method Logs not implemented")
 }
 func (UnimplementedAgentServiceServer) Shutdown(context.Context, *ShutdownRequest) (*ShutdownResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Shutdown not implemented")
@@ -100,6 +137,27 @@ func _AgentService_Status_Handler(srv interface{}, ctx context.Context, dec func
 		return srv.(AgentServiceServer).Status(ctx, req.(*StatusRequest))
 	}
 	return interceptor(ctx, in, info, handler)
+}
+
+func _AgentService_Logs_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(LogsRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(AgentServiceServer).Logs(m, &agentServiceLogsServer{stream})
+}
+
+type AgentService_LogsServer interface {
+	Send(*LogEntry) error
+	grpc.ServerStream
+}
+
+type agentServiceLogsServer struct {
+	grpc.ServerStream
+}
+
+func (x *agentServiceLogsServer) Send(m *LogEntry) error {
+	return x.ServerStream.SendMsg(m)
 }
 
 func _AgentService_Shutdown_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -136,6 +194,12 @@ var AgentService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _AgentService_Shutdown_Handler,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "Logs",
+			Handler:       _AgentService_Logs_Handler,
+			ServerStreams: true,
+		},
+	},
 	Metadata: "api/agent/clarum-agent.proto",
 }
