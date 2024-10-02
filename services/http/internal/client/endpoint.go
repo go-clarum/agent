@@ -198,7 +198,7 @@ func (endpoint *endpoint) handleError(message string, err error) error {
 		errorMessage = message
 	}
 	endpoint.logger.Errorf(errorMessage)
-	return errors.New(endpoint.logger.Name() + errorMessage)
+	return errors.New(endpoint.logger.Name() + " " + errorMessage)
 }
 
 func (endpoint *endpoint) logOutgoingRequest(payload string, req *http.Request) {

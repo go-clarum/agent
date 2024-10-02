@@ -130,7 +130,7 @@ func ValidateHttpPayload(expectedPayload *string, actualPayload io.ReadCloser,
 		return handleError(logger, "could not read response body - %s", err)
 	}
 
-	if err := validatePayload(expectedPayload, bodyBytes, payloadType, logger); err != nil {
+	if err := validatePayload(*expectedPayload, bodyBytes, payloadType, logger); err != nil {
 		return handleError(logger, "%s", err)
 	} else {
 		logger.Info("payload validation successful")
@@ -145,14 +145,14 @@ func closeBody(logger *logging.Logger, body io.ReadCloser) {
 	}
 }
 
-func validatePayload(expected *string, actual []byte, payloadType internal.PayloadType, logger *logging.Logger) error {
+func validatePayload(expected string, actual []byte, payloadType internal.PayloadType, logger *logging.Logger) error {
 	if len(actual) == 0 {
 		return errors.New(fmt.Sprintf("validation error - payload missing - expected [%s] but received no payload",
 			expected))
 	} else if payloadType == internal.Plaintext {
 		receivedPayload := string(actual)
 
-		if *expected != receivedPayload {
+		if expected != receivedPayload {
 			return errors.New(fmt.Sprintf("validation error - payload mismatch - expected [%s] but received [%s]",
 				expected, receivedPayload))
 		}
@@ -161,7 +161,7 @@ func validatePayload(expected *string, actual []byte, payloadType internal.Paylo
 			Recorder(recorder.NewDefaultRecorder()).
 			Build()
 
-		reporterLog, errs := jsonComparator.Compare([]byte(*expected), actual)
+		reporterLog, errs := jsonComparator.Compare([]byte(expected), actual)
 
 		if errs != nil {
 			logger.Infof("json validation log: %s", reporterLog)
