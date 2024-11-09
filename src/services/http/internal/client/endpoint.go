@@ -80,7 +80,7 @@ func (endpoint *endpoint) send(action *SendAction) error {
 		// we log the error here directly, but will do error handling downstream
 		if err != nil {
 			endpoint.logger.Errorf("error on response - %s", err)
-			defer res.Body.Close()
+			defer closeBody(res)
 		} else {
 			endpoint.logIncomingResponse(res)
 		}
@@ -99,6 +99,12 @@ func (endpoint *endpoint) send(action *SendAction) error {
 	}()
 
 	return nil
+}
+
+func closeBody(res *http.Response) {
+	if res.Body != nil {
+		res.Body.Close()
+	}
 }
 
 // validationOptions pass by value is intentional
