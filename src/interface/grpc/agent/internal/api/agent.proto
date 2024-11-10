@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+option go_package = "github.com/go-clarum/agent/interface/grpc/agent/api";
+
+service AgentApi {
+  rpc Status(StatusRequest) returns (StatusResponse) {}
+  rpc Logs(LogsRequest) returns (stream LogEntry) {};
+  rpc Shutdown(ShutdownRequest) returns (ShutdownResponse) {}
+}
+
+message StatusRequest {}
+message StatusResponse {
+  string version = 1;
+}
+
+message ShutdownRequest {}
+message ShutdownResponse {
+}
+
+message LogsRequest {
+  string listenerName = 1;
+}
+message LogEntry {
+  string message = 1;
+}
+

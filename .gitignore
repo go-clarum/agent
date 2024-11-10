@@ -1,4 +1,6 @@
 .idea
 
+**/*.pb.go
+
 builds
 todos.md

@@ -2,12 +2,12 @@ package main
 
 import (
 	"fmt"
-	"github.com/go-clarum/agent/config"
-	"github.com/go-clarum/agent/control"
-	"github.com/go-clarum/agent/logging"
-	"github.com/go-clarum/agent/services/agent"
-	"github.com/go-clarum/agent/services/cmd"
-	"github.com/go-clarum/agent/services/http"
+	"github.com/go-clarum/agent/application/control"
+	"github.com/go-clarum/agent/infrastructure/config"
+	"github.com/go-clarum/agent/infrastructure/logging"
+	"github.com/go-clarum/agent/interface/grpc/agent"
+	"github.com/go-clarum/agent/interface/grpc/cmd"
+	"github.com/go-clarum/agent/interface/grpc/http"
 	"google.golang.org/grpc"
 	"net"
 )
@@ -32,7 +32,7 @@ func initAndRunGrpcServer() {
 
 	grpcServer := grpc.NewServer()
 
-	agent.RegisterAgentService(grpcServer)
+	agent.RegisterAgentApi(grpcServer)
 	http.RegisterHttpService(grpcServer)
 	cmd.RegisterCmdService(grpcServer)
 
