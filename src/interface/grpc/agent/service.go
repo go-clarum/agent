@@ -6,6 +6,7 @@ import (
 	"github.com/go-clarum/agent/infrastructure/config"
 	"github.com/go-clarum/agent/infrastructure/logging"
 	"github.com/go-clarum/agent/interface/grpc/agent/internal/api"
+	"github.com/go-clarum/agent/interface/grpc/agent/internal/api/commands/logs"
 	"google.golang.org/grpc"
 )
 
@@ -35,7 +36,7 @@ func (s *grpcService) Shutdown(ctx context.Context, request *api.ShutdownRequest
 	return &api.ShutdownResponse{}, nil
 }
 
-func (s *grpcService) Logs(req *api.LogsRequest, stream api.AgentApi_LogsServer) error {
+func (s *grpcService) Logs(req *logs.LogsRequest, stream api.AgentApi_LogsServer) error {
 	logging.Debugf("log listener %s connected", req.ListenerName)
 	logChannel := logging.LogEmitter.Subscribe()
 	defer logging.LogEmitter.Unsubscribe(logChannel)
@@ -46,7 +47,7 @@ func (s *grpcService) Logs(req *api.LogsRequest, stream api.AgentApi_LogsServer)
 			logging.Debugf("closing log stream for %s ", req.ListenerName)
 			return nil
 		case message := <-logChannel:
-			if err := stream.Send(&api.LogEntry{Message: message}); err != nil {
+			if err := stream.Send(&logs.LogEntry{Message: message}); err != nil {
 				logging.Errorf("received error while streaming logs: %s", err.Error())
 			}
 		}

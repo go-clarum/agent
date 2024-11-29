@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"github.com/go-clarum/agent/application/control"
 	"github.com/go-clarum/agent/infrastructure/config"
 	"github.com/go-clarum/agent/infrastructure/logging"
 	"github.com/go-clarum/agent/interface/grpc/agent"
@@ -14,11 +13,9 @@ import (
 
 func main() {
 	logging.Infof("starting clarum agent v%s", config.Version())
-	control.ShutdownHook.Add(1)
 
 	initAndRunGrpcServer()
 
-	control.ShutdownHook.Wait()
 	logging.Info("shutting down clarum agent")
 }
 

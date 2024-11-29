@@ -1,39 +1,30 @@
 syntax = "proto3";
 
-option go_package = "github.com/go-clarum/agent/interface/grpc/http/api";
+option go_package = "github.com/go-clarum/agent/interface/grpc/agent/internal/api/commands/http";
 
-service HttpApi {
-  rpc InitClientEndpoint(InitClientRequest) returns (InitClientResponse) {}
-  rpc InitServerEndpoint(InitServerRequest) returns (InitServerResponse) {}
+package http;
 
-  rpc ClientSendAction(ClientSendActionRequest) returns (ClientSendActionResponse) {}
-  rpc ClientReceiveAction(ClientReceiveActionRequest) returns (ClientReceiveActionResponse) {}
-
-  rpc ServerSendAction(ServerSendActionRequest) returns (ServerSendActionResponse) {}
-  rpc ServerReceiveAction(ServerReceiveActionRequest) returns (ServerReceiveActionResponse) {}
-}
-
-message InitClientRequest {
+message InitClientCommand {
   string name = 1;
   string base_url = 2;
   string content_type = 3;
   int32 timeout_seconds = 4;
 }
-message InitClientResponse {
+message InitClientResult {
   string error = 1;
 }
 
-message InitServerRequest {
+message InitServerCommand {
   string name = 1;
   int32 port = 2;
   string content_type = 3;
   int32 timeout_seconds = 4;
 }
-message InitServerResponse {
+message InitServerResult {
   string error = 1;
 }
 
-message ClientSendActionRequest {
+message ClientSendActionCommand {
   string name = 1;
   string url = 2;
   repeated string path = 3;
@@ -43,11 +34,11 @@ message ClientSendActionRequest {
   string payload = 7;
   string endpoint_name = 8;
 }
-message ClientSendActionResponse {
+message ClientSendActionResult {
   string error = 1;
 }
 
-message ClientReceiveActionRequest {
+message ClientReceiveActionCommand {
   string name = 1;
   PayloadType payloadType = 2;
   int32 statusCode = 3;
@@ -55,22 +46,22 @@ message ClientReceiveActionRequest {
   string payload = 5;
   string endpointName = 6;
 }
-message ClientReceiveActionResponse {
+message ClientReceiveActionResult {
   string error = 1;
 }
 
-message ServerSendActionRequest {
+message ServerSendActionCommand {
   string name = 1;
   int32 statusCode = 2;
   map<string, string> headers = 3;
   string payload = 4;
   string endpointName = 5;
 }
-message ServerSendActionResponse {
+message ServerSendActionResult {
   string error = 1;
 }
 
-message ServerReceiveActionRequest {
+message ServerReceiveActionCommand {
   string name = 1;
   string url = 2;
   repeated string path = 3;
@@ -81,7 +72,7 @@ message ServerReceiveActionRequest {
   PayloadType payloadType = 8;
   string endpointName = 9;
 }
-message ServerReceiveActionResponse {
+message ServerReceiveActionResult {
   string error = 1;
 }
 

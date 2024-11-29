@@ -1,10 +1,13 @@
 syntax = "proto3";
 
-option go_package = "github.com/go-clarum/agent/interface/grpc/agent/api";
+option go_package = "github.com/go-clarum/agent/interface/grpc/agent/internal/api";
+
+import "interface/grpc/agent/internal/api/commands/cmd/cmd.proto";
+import "interface/grpc/agent/internal/api/commands/http/http.proto";
 
 service AgentApi {
   rpc Status(StatusRequest) returns (StatusResponse) {}
-  rpc Logs(LogsRequest) returns (stream LogEntry) {};
+  rpc Session(stream ActionCommand) returns (stream CommandResponse) {}
   rpc Shutdown(ShutdownRequest) returns (ShutdownResponse) {}
 }
 
@@ -13,14 +16,32 @@ message StatusResponse {
   string version = 1;
 }
 
+message ActionCommand {
+  oneof action {
+    cmd.InitEndpointCommand initEndpoint = 1;
+    cmd.ShutdownEndpointCommand shutdownEndpoint = 2;
+    http.InitClientCommand initClient = 3;
+    http.InitServerCommand initServer = 4;
+    http.ClientSendActionCommand clientSendAction = 5;
+    http.ClientReceiveActionCommand clientReceiveAction = 6;
+    http.ServerSendActionCommand serverSendAction = 7;
+    http.ServerReceiveActionCommand serverReceiveAction = 8;
+  }
+}
+
+message CommandResponse {
+    oneof result {
+      cmd.InitEndpointResult initEndpointResult = 1;
+      cmd.ShutdownEndpointResult shutdownEndpointResult = 2;
+      http.InitClientResult initClientResult = 3;
+      http.InitServerResult initServerResult = 4;
+      http.ClientSendActionResult clientSendActionResult = 5;
+      http.ClientReceiveActionResult clientReceiveActionResult = 6;
+      http.ServerSendActionResult serverSendActionResult = 7;
+      http.ServerReceiveActionResult serverReceiveActionResult = 8;
+    }
+}
+
 message ShutdownRequest {}
 message ShutdownResponse {
 }
-
-message LogsRequest {
-  string listenerName = 1;
-}
-message LogEntry {
-  string message = 1;
-}
-
