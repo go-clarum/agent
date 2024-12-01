@@ -3,8 +3,8 @@ package validators
 import (
 	"errors"
 	"fmt"
-	"github.com/go-clarum/agent/application/services/http/common/model"
-	"github.com/go-clarum/agent/application/services/http/common/utils"
+	"github.com/go-clarum/agent/application/command/http/common/model"
+	"github.com/go-clarum/agent/application/command/http/common/utils"
 	"github.com/go-clarum/agent/application/utils/arrays"
 	clarumstrings "github.com/go-clarum/agent/application/validators/strings"
 	"github.com/go-clarum/agent/infrastructure/logging"

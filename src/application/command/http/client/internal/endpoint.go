@@ -4,11 +4,11 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"github.com/go-clarum/agent/application/command/http/client/commands"
+	"github.com/go-clarum/agent/application/command/http/common/constants"
+	"github.com/go-clarum/agent/application/command/http/common/utils"
+	"github.com/go-clarum/agent/application/command/http/common/validators"
 	"github.com/go-clarum/agent/application/control"
-	"github.com/go-clarum/agent/application/services/http/client/actions"
-	"github.com/go-clarum/agent/application/services/http/common/constants"
-	"github.com/go-clarum/agent/application/services/http/common/utils"
-	"github.com/go-clarum/agent/application/services/http/common/validators"
 	"github.com/go-clarum/agent/application/utils/durations"
 	clarumstrings "github.com/go-clarum/agent/application/validators/strings"
 	"github.com/go-clarum/agent/infrastructure/config"
@@ -32,7 +32,7 @@ type responsePair struct {
 	error    error
 }
 
-func NewEndpoint(ic *actions.InitEndpointAction) (*Endpoint, error) {
+func NewEndpoint(ic *commands.InitEndpointCommand) (*Endpoint, error) {
 	if clarumstrings.IsBlank(ic.Name) {
 		return nil, errors.New("cannot create HTTP client endpoint - name is empty")
 	}
@@ -51,7 +51,7 @@ func NewEndpoint(ic *actions.InitEndpointAction) (*Endpoint, error) {
 	}, nil
 }
 
-func (endpoint *Endpoint) Send(action *actions.SendAction) error {
+func (endpoint *Endpoint) Send(action *commands.SendCommand) error {
 	if action == nil {
 		return endpoint.handleError("send action is nil", nil)
 	}
@@ -109,7 +109,7 @@ func closeBody(res *http.Response) {
 }
 
 // validationOptions pass by value is intentional
-func (endpoint *Endpoint) Receive(action *actions.ReceiveAction) (*http.Response, error) {
+func (endpoint *Endpoint) Receive(action *commands.ReceiveCommand) (*http.Response, error) {
 	if action == nil {
 		return nil, endpoint.handleError("receive action is nil", nil)
 	}
@@ -135,7 +135,7 @@ func (endpoint *Endpoint) Receive(action *actions.ReceiveAction) (*http.Response
 }
 
 // Put missing data into a message to send: baseUrl & ContentType Header
-func (endpoint *Endpoint) enrichSendAction(action *actions.SendAction) {
+func (endpoint *Endpoint) enrichSendAction(action *commands.SendCommand) {
 	if clarumstrings.IsBlank(action.Url) {
 		action.Url = endpoint.baseUrl
 	}
@@ -151,7 +151,7 @@ func (endpoint *Endpoint) enrichSendAction(action *actions.SendAction) {
 }
 
 // Put missing data into message to receive: ContentType Header
-func (endpoint *Endpoint) enrichReceiveAction(action *actions.ReceiveAction) {
+func (endpoint *Endpoint) enrichReceiveAction(action *commands.ReceiveCommand) {
 	if clarumstrings.IsNotBlank(endpoint.contentType) {
 		if _, exists := action.Headers[constants.ContentTypeHeaderName]; !exists {
 			action.Headers[constants.ContentTypeHeaderName] = endpoint.contentType
@@ -159,7 +159,7 @@ func (endpoint *Endpoint) enrichReceiveAction(action *actions.ReceiveAction) {
 	}
 }
 
-func (endpoint *Endpoint) validateMessageToSend(action *actions.SendAction) error {
+func (endpoint *Endpoint) validateMessageToSend(action *commands.SendCommand) error {
 	if clarumstrings.IsBlank(action.Method) {
 		return endpoint.handleError("send action is invalid - missing HTTP method", nil)
 	}
@@ -173,7 +173,7 @@ func (endpoint *Endpoint) validateMessageToSend(action *actions.SendAction) erro
 	return nil
 }
 
-func (endpoint *Endpoint) buildRequest(action *actions.SendAction) (*http.Request, error) {
+func (endpoint *Endpoint) buildRequest(action *commands.SendCommand) (*http.Request, error) {
 	url := utils.BuildPath(action.Url, action.Path...)
 
 	req, err := http.NewRequest(action.Method, url, bytes.NewBufferString(action.Payload))

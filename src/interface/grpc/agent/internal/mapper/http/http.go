@@ -1,18 +1,15 @@
-package mappers
+package http
 
 import (
-	clientActions "github.com/go-clarum/agent/application/services/http/client/actions"
-	"github.com/go-clarum/agent/application/services/http/common/model"
-	serverActions "github.com/go-clarum/agent/application/services/http/server/actions"
-	"github.com/go-clarum/agent/interface/grpc/http/internal/api"
+	clientCommands "github.com/go-clarum/agent/application/command/http/client/commands"
+	"github.com/go-clarum/agent/application/command/http/common/model"
+	serverCommands "github.com/go-clarum/agent/application/command/http/server/commands"
+	api "github.com/go-clarum/agent/interface/grpc/agent/internal/api/commands/http"
 	"time"
 )
 
-// the purpose of this layer is to separate the internal model from the grpc one
-// only data type mapping should happen here, no business logic (like setting defaults)
-
-func NewClientInitRequestFrom(is *api.InitClientRequest) *clientActions.InitEndpointAction {
-	return &clientActions.InitEndpointAction{
+func NewClientInitCommandFrom(is *api.InitClientCommand) *clientCommands.InitEndpointCommand {
+	return &clientCommands.InitEndpointCommand{
 		Name:           is.Name,
 		BaseUrl:        is.BaseUrl,
 		ContentType:    is.ContentType,
@@ -20,8 +17,8 @@ func NewClientInitRequestFrom(is *api.InitClientRequest) *clientActions.InitEndp
 	}
 }
 
-func NewClientSendActionFrom(sa *api.ClientSendActionRequest) *clientActions.SendAction {
-	return &clientActions.SendAction{
+func NewClientSendActionFrom(sa *api.ClientSendActionCommand) *clientCommands.SendCommand {
+	return &clientCommands.SendCommand{
 		Name:         sa.Name,
 		Url:          sa.Url,
 		Path:         sa.Path,
@@ -33,8 +30,8 @@ func NewClientSendActionFrom(sa *api.ClientSendActionRequest) *clientActions.Sen
 	}
 }
 
-func NewClientReceiveActionFrom(sa *api.ClientReceiveActionRequest) *clientActions.ReceiveAction {
-	return &clientActions.ReceiveAction{
+func NewClientReceiveActionFrom(sa *api.ClientReceiveActionCommand) *clientCommands.ReceiveCommand {
+	return &clientCommands.ReceiveCommand{
 		Name:         sa.Name,
 		PayloadType:  model.PayloadType(sa.PayloadType),
 		StatusCode:   int(sa.StatusCode),
@@ -44,16 +41,16 @@ func NewClientReceiveActionFrom(sa *api.ClientReceiveActionRequest) *clientActio
 	}
 }
 
-func NewServerInitRequestFrom(is *api.InitServerRequest) *serverActions.InitEndpointAction {
-	return &serverActions.InitEndpointAction{
+func NewServerInitRequestFrom(is *api.InitServerCommand) *serverCommands.InitEndpointCommand {
+	return &serverCommands.InitEndpointCommand{
 		Name:           is.Name,
 		Port:           uint(is.Port),
 		TimeoutSeconds: time.Duration(is.TimeoutSeconds) * time.Second,
 	}
 }
 
-func NewServerSendActionFrom(sa *api.ServerSendActionRequest) *serverActions.SendAction {
-	return &serverActions.SendAction{
+func NewServerSendActionFrom(sa *api.ServerSendActionCommand) *serverCommands.SendCommand {
+	return &serverCommands.SendCommand{
 		Name:         sa.Name,
 		StatusCode:   int(sa.StatusCode),
 		Headers:      sa.Headers,
@@ -62,8 +59,8 @@ func NewServerSendActionFrom(sa *api.ServerSendActionRequest) *serverActions.Sen
 	}
 }
 
-func NewServerReceiveActionFrom(ra *api.ServerReceiveActionRequest) *serverActions.ReceiveAction {
-	return &serverActions.ReceiveAction{
+func NewServerReceiveActionFrom(ra *api.ServerReceiveActionCommand) *serverCommands.ReceiveCommand {
+	return &serverCommands.ReceiveCommand{
 		Name:         ra.Name,
 		Url:          ra.Url,
 		Path:         ra.Path,

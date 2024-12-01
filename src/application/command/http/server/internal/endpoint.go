@@ -5,10 +5,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/go-clarum/agent/application/command/http/common/constants"
+	"github.com/go-clarum/agent/application/command/http/common/validators"
+	"github.com/go-clarum/agent/application/command/http/server/commands"
 	"github.com/go-clarum/agent/application/control"
-	"github.com/go-clarum/agent/application/services/http/common/constants"
-	"github.com/go-clarum/agent/application/services/http/common/validators"
-	"github.com/go-clarum/agent/application/services/http/server/actions"
 	clarumstrings "github.com/go-clarum/agent/application/validators/strings"
 	"github.com/go-clarum/agent/infrastructure/config"
 	"github.com/go-clarum/agent/infrastructure/logging"
@@ -41,11 +41,11 @@ type endpointContext struct {
 }
 
 type sendPair struct {
-	response *actions.SendAction
+	response *commands.SendCommand
 	error    error
 }
 
-func NewEndpoint(is *actions.InitEndpointAction) *Endpoint {
+func NewEndpoint(is *commands.InitEndpointCommand) *Endpoint {
 	ctx, cancelCtx := context.WithCancel(context.Background())
 	sendChannel := make(chan *sendPair)
 	requestChannel := make(chan *http.Request)
@@ -66,7 +66,7 @@ func NewEndpoint(is *actions.InitEndpointAction) *Endpoint {
 }
 
 // this Method is blocking, until a request is received
-func (endpoint *Endpoint) Receive(action *actions.ReceiveAction) (*http.Request, error) {
+func (endpoint *Endpoint) Receive(action *commands.ReceiveCommand) (*http.Request, error) {
 	endpoint.logger.Debugf("action to receive %s", action.ToString())
 	endpoint.enrichReceiveAction(action)
 
@@ -86,7 +86,7 @@ func (endpoint *Endpoint) Receive(action *actions.ReceiveAction) (*http.Request,
 	}
 }
 
-func (endpoint *Endpoint) Send(action *actions.SendAction) error {
+func (endpoint *Endpoint) Send(action *commands.SendCommand) error {
 	endpoint.enrichSendAction(action)
 	err := endpoint.validateMessageToSend(action)
 
@@ -104,7 +104,7 @@ func (endpoint *Endpoint) Send(action *actions.SendAction) error {
 	}
 }
 
-func (endpoint *Endpoint) enrichReceiveAction(action *actions.ReceiveAction) {
+func (endpoint *Endpoint) enrichReceiveAction(action *commands.ReceiveCommand) {
 	if clarumstrings.IsNotBlank(endpoint.contentType) {
 		if _, exists := action.Headers[constants.ContentTypeHeaderName]; !exists {
 			action.Headers[constants.ContentTypeHeaderName] = endpoint.contentType
@@ -112,7 +112,7 @@ func (endpoint *Endpoint) enrichReceiveAction(action *actions.ReceiveAction) {
 	}
 }
 
-func (endpoint *Endpoint) enrichSendAction(action *actions.SendAction) {
+func (endpoint *Endpoint) enrichSendAction(action *commands.SendCommand) {
 	// if no Headers have been sent by the bindings, this will be nil
 	if action.Headers == nil {
 		action.Headers = make(map[string]string)
@@ -239,7 +239,7 @@ func sendDefaultErrorResponse(logger *logging.Logger, errorMessage string, resWr
 	logOutgoingResponse(logger, http.StatusInternalServerError, "", resWriter)
 }
 
-func (endpoint *Endpoint) validateMessageToSend(action *actions.SendAction) error {
+func (endpoint *Endpoint) validateMessageToSend(action *commands.SendCommand) error {
 	if action.StatusCode < 100 || action.StatusCode > 999 {
 		return endpoint.handleError(fmt.Sprintf("action to send is invalid - unsupported status code [%d]",
 			action.StatusCode), nil)

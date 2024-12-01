@@ -16,29 +16,39 @@ message StatusResponse {
   string version = 1;
 }
 
+message InitSessionCommand {
+  string clientName = 1;
+}
+
+message InitSessionResult {
+  string sessionId = 1;
+}
+
 message ActionCommand {
   oneof action {
-    cmd.InitEndpointCommand initEndpoint = 1;
-    cmd.ShutdownEndpointCommand shutdownEndpoint = 2;
-    http.InitClientCommand initClient = 3;
-    http.InitServerCommand initServer = 4;
-    http.ClientSendActionCommand clientSendAction = 5;
-    http.ClientReceiveActionCommand clientReceiveAction = 6;
-    http.ServerSendActionCommand serverSendAction = 7;
-    http.ServerReceiveActionCommand serverReceiveAction = 8;
+    InitSessionCommand initSession = 1;
+    cmd.InitEndpointCommand initEndpoint = 2;
+    cmd.ShutdownEndpointCommand shutdownEndpoint = 3;
+    http.InitClientCommand initClient = 4;
+    http.InitServerCommand initServer = 5;
+    http.ClientSendActionCommand clientSendAction = 6;
+    http.ClientReceiveActionCommand clientReceiveAction = 7;
+    http.ServerSendActionCommand serverSendAction = 8;
+    http.ServerReceiveActionCommand serverReceiveAction = 9;
   }
 }
 
 message CommandResponse {
     oneof result {
-      cmd.InitEndpointResult initEndpointResult = 1;
-      cmd.ShutdownEndpointResult shutdownEndpointResult = 2;
-      http.InitClientResult initClientResult = 3;
-      http.InitServerResult initServerResult = 4;
-      http.ClientSendActionResult clientSendActionResult = 5;
-      http.ClientReceiveActionResult clientReceiveActionResult = 6;
-      http.ServerSendActionResult serverSendActionResult = 7;
-      http.ServerReceiveActionResult serverReceiveActionResult = 8;
+      InitSessionResult initSessionResult = 1;
+      cmd.InitEndpointResult initEndpointResult = 2;
+      cmd.ShutdownEndpointResult shutdownEndpointResult = 3;
+      http.InitClientResult initClientResult = 4;
+      http.InitServerResult initServerResult = 5;
+      http.ClientSendActionResult clientSendActionResult = 6;
+      http.ClientReceiveActionResult clientReceiveActionResult = 7;
+      http.ServerSendActionResult serverSendActionResult = 8;
+      http.ServerReceiveActionResult serverReceiveActionResult = 9;
     }
 }
 

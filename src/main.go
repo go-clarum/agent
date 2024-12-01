@@ -5,8 +5,6 @@ import (
 	"github.com/go-clarum/agent/infrastructure/config"
 	"github.com/go-clarum/agent/infrastructure/logging"
 	"github.com/go-clarum/agent/interface/grpc/agent"
-	"github.com/go-clarum/agent/interface/grpc/cmd"
-	"github.com/go-clarum/agent/interface/grpc/http"
 	"google.golang.org/grpc"
 	"net"
 )
@@ -30,8 +28,6 @@ func initAndRunGrpcServer() {
 	grpcServer := grpc.NewServer()
 
 	agent.RegisterAgentApi(grpcServer)
-	http.RegisterHttpService(grpcServer)
-	cmd.RegisterCmdService(grpcServer)
 
 	logging.Infof("starting GRPC server on %s", address)
 	if err := grpcServer.Serve(lis); err != nil {

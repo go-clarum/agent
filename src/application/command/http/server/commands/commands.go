@@ -1,19 +1,19 @@
-package actions
+package commands
 
 import (
 	"fmt"
-	"github.com/go-clarum/agent/application/services/http/common/model"
+	"github.com/go-clarum/agent/application/command/http/common/model"
 	"time"
 )
 
-type InitEndpointAction struct {
+type InitEndpointCommand struct {
 	Name           string
 	Port           uint
 	ContentType    string
 	TimeoutSeconds time.Duration
 }
 
-type SendAction struct {
+type SendCommand struct {
 	Name         string
 	PayloadType  model.PayloadType
 	StatusCode   int
@@ -22,7 +22,7 @@ type SendAction struct {
 	EndpointName string
 }
 
-type ReceiveAction struct {
+type ReceiveCommand struct {
 	Name         string
 	Url          string
 	Path         []string
@@ -34,7 +34,7 @@ type ReceiveAction struct {
 	EndpointName string
 }
 
-func (action *ReceiveAction) ToString() string {
+func (action *ReceiveCommand) ToString() string {
 	return fmt.Sprintf(
 		"["+
 			"Method: %s, "+

@@ -1,20 +1,20 @@
-package actions
+package commands
 
 import (
 	"fmt"
-	"github.com/go-clarum/agent/application/services/http/common/model"
+	"github.com/go-clarum/agent/application/command/http/common/model"
 	"strconv"
 	"time"
 )
 
-type InitEndpointAction struct {
+type InitEndpointCommand struct {
 	Name           string
 	BaseUrl        string
 	ContentType    string
 	TimeoutSeconds time.Duration
 }
 
-type SendAction struct {
+type SendCommand struct {
 	Name         string
 	Url          string
 	Path         []string
@@ -25,7 +25,7 @@ type SendAction struct {
 	EndpointName string
 }
 
-type ReceiveAction struct {
+type ReceiveCommand struct {
 	Name         string
 	PayloadType  model.PayloadType
 	StatusCode   int
@@ -34,7 +34,7 @@ type ReceiveAction struct {
 	EndpointName string
 }
 
-func (action *SendAction) ToString() string {
+func (action *SendCommand) ToString() string {
 	return fmt.Sprintf(
 		"["+
 			"Method: %s, "+
@@ -48,7 +48,7 @@ func (action *SendAction) ToString() string {
 		action.Headers, action.QueryParams, action.Payload)
 }
 
-func (action *ReceiveAction) ToString() string {
+func (action *ReceiveCommand) ToString() string {
 	statusCodeText := "none"
 	if action.StatusCode > 0 {
 		statusCodeText = strconv.Itoa(action.StatusCode)

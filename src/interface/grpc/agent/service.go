@@ -2,12 +2,14 @@ package agent
 
 import (
 	"context"
+	"github.com/go-clarum/agent/application/command"
 	"github.com/go-clarum/agent/application/services/agent"
 	"github.com/go-clarum/agent/infrastructure/config"
 	"github.com/go-clarum/agent/infrastructure/logging"
 	"github.com/go-clarum/agent/interface/grpc/agent/internal/api"
-	"github.com/go-clarum/agent/interface/grpc/agent/internal/api/commands/logs"
+	"github.com/go-clarum/agent/interface/grpc/agent/internal/mapper"
 	"google.golang.org/grpc"
+	"io"
 )
 
 var agentService = agent.NewAgentService()
@@ -36,20 +38,27 @@ func (s *grpcService) Shutdown(ctx context.Context, request *api.ShutdownRequest
 	return &api.ShutdownResponse{}, nil
 }
 
-func (s *grpcService) Logs(req *logs.LogsRequest, stream api.AgentApi_LogsServer) error {
-	logging.Debugf("log listener %s connected", req.ListenerName)
-	logChannel := logging.LogEmitter.Subscribe()
-	defer logging.LogEmitter.Unsubscribe(logChannel)
+func (s *grpcService) Session(stream grpc.BidiStreamingServer[api.ActionCommand, api.CommandResponse]) error {
+	logging.Debug("session started")
 
 	for {
-		select {
-		case <-stream.Context().Done():
-			logging.Debugf("closing log stream for %s ", req.ListenerName)
-			return nil
-		case message := <-logChannel:
-			if err := stream.Send(&logs.LogEntry{Message: message}); err != nil {
-				logging.Errorf("received error while streaming logs: %s", err.Error())
-			}
+		in, err := stream.Recv()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return err
+		}
+
+		var inCommand = mapper.TranslateCommand(in)
+		result := command.GetMediator().DelegateCommand(inCommand)
+		var outResult = mapper.TranslateResult(result)
+
+		if err := stream.Send(outResult); err != nil {
+			return err
 		}
 	}
+
+	logging.Debug("session closed")
+	return nil
 }
